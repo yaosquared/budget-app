@@ -2,5 +2,8 @@ import { createApp } from "vue";
 import "./assets/main.scss";
 import App from "./App.vue";
 import router from "./router";
+import { VueQueryPlugin, QueryClient } from "@tanstack/vue-query";
 
-createApp(App).use(router).mount("#app");
+const queryClient = new QueryClient();
+
+createApp(App).use(router).use(VueQueryPlugin, { queryClient }).mount("#app");

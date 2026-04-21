@@ -4,6 +4,7 @@ import { RouterLink } from "vue-router";
 import { IHeaderEmits } from "../types/header";
 
 const emit = defineEmits<IHeaderEmits>();
+const isDev = import.meta.env.DEV;
 </script>
 
 <template>
@@ -14,7 +15,10 @@ const emit = defineEmits<IHeaderEmits>();
       </button>
       <RouterLink to="/">
         <h1>
-          <span class="logo-ip">Ip</span><span class="logo-own">Own</span>
+          <span v-if="isDev">App</span>
+          <div v-else>
+            <span class="logo-ip">Ip</span><span class="logo-own">Own</span>
+          </div>
         </h1>
       </RouterLink>
     </div>
