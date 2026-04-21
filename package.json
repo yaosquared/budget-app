@@ -1,15 +1,17 @@
 {
-  "name": "budget-app",
+  "name": "ipown",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "dev": "vite --mode production",
+    "build": "vue-tsc -b && vite build --mode production",
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.5.32"
+    "@iconify/vue": "^5.0.0",
+    "vue": "^3.5.32",
+    "vue-router": "^5.0.4"
   },
   "devDependencies": {
     "@types/node": "^24.12.2",

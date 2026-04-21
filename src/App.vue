@@ -1,5 +1,7 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import AppLayout from "./components/layout/AppLayout.vue";
+</script>
 
-<template></template>
-
-<style scoped lang="scss"></style>
+<template>
+  <AppLayout />
+</template>
