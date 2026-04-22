@@ -1,44 +1,51 @@
 <script setup>
+import { Icon } from "@iconify/vue";
+
 const props = defineProps({
   text: String,
+  icon: String,
 });
 </script>
 
 <template>
-  <button>{{ text }}</button>
+  <button>
+    <Icon :icon="icon" width="18" height="18" />
+    <span>{{ text }}</span>
+  </button>
 </template>
 
 <style scoped lang="scss">
 button {
-  background-color: $black-900;
+  background: linear-gradient(135deg, $indigo-600, $indigo-700);
   color: $white;
-  border: 1px solid $black-900;
+  border: 1px solid transparent;
   padding: 10px 18px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 500;
+  font-size: 14px;
   letter-spacing: 0.2px;
   cursor: pointer;
-  position: relative;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 
   &:hover {
-    background-color: $black-950;
-    border-color: $black-950;
+    background-color: $indigo-700;
     transform: translateY(-1px);
   }
 
   &:active {
     transform: translateY(0);
-    background-color: $black-800;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   }
 
   &:focus-visible {
     outline: none;
     box-shadow:
       0 0 0 3px $white-opacity-08,
-      0 6px 14px rgba(0, 0, 0, 0.35);
+      0 6px 14px rgba(0, 0, 0, 0.25);
   }
 
   &:disabled {

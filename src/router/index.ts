@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from "vue-router";
 import Dashboard from "../views/Dashboard.vue";
 import Transactions from "../views/Transactions.vue";
 import Budget from "../views/Budget.vue";
-import Analytics from "../views/Analytics.vue";
 import Goals from "../views/Goals.vue";
 import Attendance from "../views/Attendance.vue";
 import Reports from "../views/Reports.vue";
@@ -15,7 +14,6 @@ const router = createRouter({
     { path: "/dashboard", component: Dashboard },
     { path: "/transactions", component: Transactions },
     { path: "/budget", component: Budget },
-    { path: "/analytics", component: Analytics },
     { path: "/goals", component: Goals },
     { path: "/attendance", component: Attendance },
     { path: "/reports", component: Reports },

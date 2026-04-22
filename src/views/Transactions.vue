@@ -1,7 +1,9 @@
 <script setup>
-import { useQuery } from "@tanstack/vue-query";
-import { fetchTransactions } from "../api/transactions";
 import { computed } from "vue";
+import { useQuery } from "@tanstack/vue-query";
+
+import { fetchTransactions } from "../api/transactions";
+import { transactionColumns } from "../constants/transactions";
 import Title from "../components/ui/Title.vue";
 import Button from "../components/ui/Button.vue";
 import Table from "../components/ui/Table.vue";
@@ -12,20 +14,13 @@ const { data, isLoading, isError } = useQuery({
 });
 
 const rows = computed(() => data.value ?? []);
-
-const transactionColumns = [
-  { key: "id", label: "ID" },
-  { key: "user_id", label: "User ID" },
-  { key: "type", label: "Transaction Type" },
-  { key: "amount", label: "Amount" },
-];
 </script>
 
 <template>
   <section>
-    <div class="controls">
+    <div class="header">
       <Title text="Transactions" />
-      <Button text="New Transaction" />
+      <Button icon="lucide:circle-plus" text="New Transaction" />
     </div>
     <Table
       :columns="transactionColumns"
@@ -40,10 +35,10 @@ const transactionColumns = [
 section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
   height: 100%;
 
-  .controls {
+  .header {
     display: flex;
     justify-content: space-between;
     align-items: center;

@@ -15,11 +15,6 @@ export const NAV_ITEMS = [
     icon: "lucide:piggy-bank",
   },
   {
-    path: "/analytics",
-    label: "Analytics",
-    icon: "lucide:bar-chart-3",
-  },
-  {
     path: "/goals",
     label: "Goals",
     icon: "lucide:goal",

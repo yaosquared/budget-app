@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { formatDateTime } from "../../utils/dateTime";
+
 const props = defineProps<{
   columns: { key: string; label: string }[];
   rows: Record<string, any>[];
@@ -32,6 +34,20 @@ const props = defineProps<{
           <td v-for="col in columns" :key="col.key">
             <span v-if="col.key === 'amount'">
               {{ row.currency }} {{ row.amount }}
+            </span>
+            <span
+              v-else-if="col.key === 'status'"
+              :class="['status', row.status]"
+            >
+              {{ row.status }}
+            </span>
+            <span
+              v-else-if="col.key === 'created_at' || col.key === 'updated_at'"
+            >
+              {{ formatDateTime(row[col.key]) }}
+            </span>
+            <span v-else-if="col.key === 'actions'" class="actions">
+              <button class="edit">Edit</button>
             </span>
             <span v-else>
               {{ row[col.key] }}
@@ -71,17 +87,70 @@ const props = defineProps<{
         font-weight: 600;
 
         &:first-child {
-          border-top-left-radius: 4px;
+          border-top-left-radius: 8px;
         }
 
         &:last-child {
-          border-top-right-radius: 4px;
+          border-top-right-radius: 8px;
         }
       }
     }
 
     tbody {
       tr {
+        td {
+          span {
+            &.status {
+              font-weight: 600;
+              text-transform: capitalize;
+            }
+
+            &.healthy,
+            &.present {
+              color: #16a34a;
+            }
+
+            &.warning,
+            &.late {
+              color: #eab308;
+            }
+
+            &.over,
+            &.absent {
+              color: #dc2626;
+            }
+
+            &.actions {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+
+              button {
+                border: none;
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: 13px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+
+                &:active {
+                  transform: scale(0.95);
+                }
+              }
+
+              .edit {
+                background: #e0f2fe;
+                color: #0369a1;
+
+                &:hover {
+                  background: #bae6fd;
+                }
+              }
+            }
+          }
+        }
+
         &.message {
           td {
             text-align: center;
@@ -99,11 +168,11 @@ const props = defineProps<{
         &:last-child {
           td {
             &:first-child {
-              border-bottom-left-radius: 4px;
+              border-bottom-left-radius: 8px;
             }
 
             &:last-child {
-              border-bottom-right-radius: 4px;
+              border-bottom-right-radius: 8px;
             }
           }
         }

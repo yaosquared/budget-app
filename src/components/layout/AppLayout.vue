@@ -35,8 +35,9 @@ const toggleSidebar = () => {
 
     .content {
       flex: 1;
-      padding: 16px;
+      padding: 20px;
       overflow: auto;
+      background: $slate-50;
     }
   }
 }
