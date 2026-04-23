@@ -2,12 +2,11 @@ $black-800: #1f2937;
 $black-900: #111827;
 $black-950: #0f172a;
 
-$white: #ffffff;
+$black-opacity-06: rgba(0, 0, 0, 0.06);
+$black-opacity-10: rgba(0, 0, 0, 0.1);
+$black-opacity-20: rgba(0, 0, 0, 0.2);
 
-$red-500: #ef4444;
-$green-500: #16a34a;
-$indigo-600: #4f46e5;
-$indigo-700: #4338ca;
+$gray-700: #374151;
 
 $slate-50: #f8fafc;
 $slate-100: #f1f5f9;
@@ -16,5 +15,23 @@ $slate-300: #cbd5e1;
 $slate-400: #94a3b8;
 $slate-500: #64748b;
 
+$white: #ffffff;
+
 $white-opacity-06: rgba(255, 255, 255, 0.06);
 $white-opacity-08: rgba(255, 255, 255, 0.08);
+$white-opacity-12: rgba(255, 255, 255, 0.12);
+
+$red-500: #ef4444;
+
+$green-500: #16a34a;
+
+$indigo-600: #4f46e5;
+$indigo-700: #4338ca;
+
+$indigo-600-700: linear-gradient(135deg, $indigo-600, $indigo-700);
+$indigo-700-600: linear-gradient(135deg, $indigo-700, $indigo-600);
+
+$indigo-650: #3f3ccf;
+
+$indigo-600-opacity-15: rgba(79, 70, 229, 0.15);
+$indigo-700-opacity-15: rgba(67, 56, 202, 0.15);

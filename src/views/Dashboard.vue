@@ -1,12 +1,82 @@
 <script setup>
-import Title from "../components/ui/Title.vue";
+import { computed } from "vue";
+import { useQuery } from "@tanstack/vue-query";
 import {
-  budgetData,
-  metricsData,
-  transactionsData,
-} from "../constants/dashboard";
-</script>
+  fetchMetrics,
+  fetchRecentBudgets,
+  fetchRecentTransactions,
+} from "../api/dashboard";
 
+import Title from "../components/ui/Title.vue";
+import ProgressBar from "../components/ui/ProgressBar.vue";
+
+const {
+  data: metricsData,
+  isLoading: isMetricsDataLoading,
+  isError: isMetricDataError,
+} = useQuery({
+  queryKey: ["metrics"],
+  queryFn: fetchMetrics,
+});
+
+const {
+  data: budgetsData,
+  isLoading: isBudgetsDataLoading,
+  isError: isBudgetsDataError,
+} = useQuery({
+  queryKey: ["recentBudgets"],
+  queryFn: fetchRecentBudgets,
+});
+
+const {
+  data: recentTransactions,
+  isLoading: isRecentTransactionsLoading,
+  isError: isRecentTransactionsError,
+} = useQuery({
+  queryKey: ["recentTransactions"],
+  queryFn: fetchRecentTransactions,
+});
+
+const metrics = computed(() => {
+  if (!metricsData.value) return [];
+
+  const data = metricsData.value;
+
+  return [
+    {
+      key: "balance",
+      label: "Balance",
+      value: data.current_balance,
+      prefix: "₱",
+    },
+    { key: "income", label: "Income", value: data.income, prefix: "₱" },
+    { key: "expenses", label: "Expenses", value: data.expenses, prefix: "₱" },
+  ];
+});
+
+const budgets = computed(() => {
+  return (budgetsData.value ?? []).map((item) => {
+    const budget = Number(item.budget || 0);
+    const spent = Number(item.spent || 0);
+    const remaining = budget - spent;
+
+    let status = "healthy";
+
+    if (remaining < 0) status = "over";
+    else if (spent / budget >= 0.8) status = "warning";
+
+    return {
+      ...item,
+      remaining,
+      status,
+    };
+  });
+});
+
+const transactions = computed(() => {
+  return recentTransactions.value?.data ?? recentTransactions.value ?? [];
+});
+</script>
 <template>
   <section>
     <div class="header">
@@ -15,29 +85,37 @@ import {
 
     <div class="content">
       <div class="metrics">
-        <div v-for="item in metricsData" :key="item.key" :class="item.key">
+        <div v-for="item in metrics" :key="item.key" :class="item.key">
           <p class="label">{{ item.label }}</p>
+
           <h3 class="value">
-            {{ item.prefix }}{{ item.value.toLocaleString() }}
+            {{ item.prefix }}{{ Number(item.value || 0).toLocaleString() }}
           </h3>
         </div>
       </div>
 
       <div class="overview">
         <div class="card budget">
-          <p class="label">BUDGET</p>
+          <p class="label">RECENT BUDGETS</p>
 
           <div class="scroll-area">
-            <div class="budget-item" v-for="item in budgetData" :key="item.id">
+            <div class="budget-item" v-for="item in budgets" :key="item.id">
               <span>{{ item.category }}</span>
 
-              <div class="progress">
-                <div class="bar" :style="{ width: item.progress + '%' }"></div>
-              </div>
+              <ProgressBar
+                :value="
+                  Math.min(
+                    (Number(item.spent) / Number(item.budget)) * 100,
+                    100,
+                  )
+                "
+                color="#4f46e5"
+                :height="8"
+              />
 
               <small>
-                ₱{{ item.spent.toLocaleString() }} / ₱{{
-                  item.limit.toLocaleString()
+                ₱{{ Number(item.spent).toLocaleString() }} / ₱{{
+                  Number(item.budget).toLocaleString()
                 }}
               </small>
             </div>
@@ -49,14 +127,17 @@ import {
 
           <div class="scroll-area">
             <ul>
-              <li v-for="item in transactionsData" :key="item.id">
-                <span>{{ item.name }}</span>
+              <li v-for="item in transactions" :key="item.id">
+                <div class="left">
+                  <span class="name">{{ item.type }}</span>
+                </div>
 
-                <span :class="item.type">
-                  {{ item.type === "expense" ? "-" : "+" }}₱{{
-                    item.amount.toLocaleString()
-                  }}
-                </span>
+                <div class="right">
+                  <small class="budget">
+                    {{ item.currency }}
+                    {{ Number(item.amount).toLocaleString() }}
+                  </small>
+                </div>
               </li>
             </ul>
           </div>
@@ -129,8 +210,14 @@ section {
       }
     }
 
-    .balance::before {
-      background: $indigo-600;
+    .balance {
+      &::before {
+        background: $indigo-600;
+      }
+
+      .value {
+        color: $indigo-600;
+      }
     }
 
     .income {
@@ -168,7 +255,6 @@ section {
       font-size: 12px;
       color: $slate-400;
       margin-bottom: 10px;
-      flex-shrink: 0;
     }
   }
 
@@ -178,11 +264,6 @@ section {
     gap: 16px;
     flex: 1;
     min-height: 0;
-
-    .budget,
-    .transactions {
-      min-height: 0;
-    }
 
     .scroll-area {
       flex: 1;
@@ -216,7 +297,6 @@ section {
         span {
           font-size: 14px;
           font-weight: 600;
-          color: $black-950;
         }
 
         small {
@@ -233,7 +313,6 @@ section {
           .bar {
             height: 100%;
             background: $indigo-600;
-            border-radius: 999px;
           }
         }
       }
@@ -268,16 +347,6 @@ section {
             font-size: 14px;
             font-weight: 500;
             color: $black-950;
-          }
-
-          .income {
-            color: $green-500;
-            font-weight: 600;
-          }
-
-          .expense {
-            color: $red-500;
-            font-weight: 600;
           }
         }
       }
