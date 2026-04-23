@@ -6,4 +6,5 @@ export const budgetColumns = [
   { key: "remaining", label: "Remaining" },
   { key: "status", label: "Status" },
   { key: "created_at", label: "Date Created" },
+  { key: "actions", label: "Actions" },
 ];

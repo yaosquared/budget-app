@@ -110,6 +110,8 @@ const rows = computed(() => data.value ?? []);
       :rows="rows"
       :isLoading="isLoading"
       :isError="isError"
+      @edit="openFeatureComingSoonModal"
+      @delete="openFeatureComingSoonModal"
     />
   </section>
 </template>

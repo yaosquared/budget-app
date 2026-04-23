@@ -67,6 +67,7 @@ const closeFeatureComingSoonModal = () => {
         :rows="rows"
         :isLoading="isLoading"
         :isError="isError"
+        @click="openFeatureComingSoonModal"
       />
     </div>
   </section>

@@ -33,10 +33,10 @@ const closeFeatureComingSoonModal = () => {
       </button>
       <RouterLink to="/">
         <h1>
-          <span class="logo-ip">Ip</span><span class="logo-own">Own</span>
+          <span class="logo-ip">Led</span><span class="logo-own">gr</span>
           <!-- <span v-if="isDev">App</span> -->
           <!-- <div v-else>
-            <span class="logo-ip">Ip</span><span class="logo-own">Own</span>
+            <span class="logo-ip">Led</span><span class="logo-own">gr</span>
           </div> -->
         </h1>
       </RouterLink>
@@ -81,7 +81,7 @@ header {
       cursor: pointer;
 
       h1 {
-        font-size: 30px;
+        font-size: 26px;
         font-weight: 600;
         display: flex;
         align-items: center;

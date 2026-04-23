@@ -10,6 +10,7 @@ const props = defineProps<{
 
 const emit = defineEmits({
   edit: (row) => true,
+  delete: (row) => true,
 });
 </script>
 
@@ -52,6 +53,9 @@ const emit = defineEmits({
             </span>
             <span v-else-if="col.key === 'actions'" class="actions">
               <button class="edit" @click="emit('edit', row)">Edit</button>
+              <button class="delete" @click="emit('delete', row)">
+                Delete
+              </button>
             </span>
             <span v-else>
               {{ row[col.key] }}
@@ -81,13 +85,13 @@ const emit = defineEmits({
     td {
       padding: 12px;
       text-align: left;
-      border-bottom: 1px solid #ddd;
-      background: #fff;
+      border-bottom: 1px solid $gray-200;
+      background: $white;
     }
 
     thead {
       th {
-        background: #f5f5f5;
+        background: $gray-50;
         font-weight: 600;
 
         &:first-child {
@@ -112,19 +116,19 @@ const emit = defineEmits({
             &.healthy,
             &.present,
             &.Success {
-              color: #16a34a;
+              color: $green-500;
             }
 
             &.warning,
             &.late,
             &.Pending {
-              color: #eab308;
+              color: $yellow-500;
             }
 
             &.over,
             &.absent,
             &.Error {
-              color: #dc2626;
+              color: $red-600;
             }
 
             &.actions {
@@ -147,11 +151,20 @@ const emit = defineEmits({
               }
 
               .edit {
-                background: #e0f2fe;
-                color: #0369a1;
+                background: $sky-100;
+                color: $sky-700;
 
                 &:hover {
-                  background: #bae6fd;
+                  background: $sky-200;
+                }
+              }
+
+              .delete {
+                background: $red-100;
+                color: $red-700;
+
+                &:hover {
+                  background: $red-200;
                 }
               }
             }

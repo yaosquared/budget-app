@@ -6,6 +6,8 @@ $black-opacity-06: rgba(0, 0, 0, 0.06);
 $black-opacity-10: rgba(0, 0, 0, 0.1);
 $black-opacity-20: rgba(0, 0, 0, 0.2);
 
+$gray-50: #f9fafb;
+$gray-200: #dddddd;
 $gray-700: #374151;
 
 $slate-50: #f8fafc;
@@ -21,12 +23,23 @@ $white-opacity-06: rgba(255, 255, 255, 0.06);
 $white-opacity-08: rgba(255, 255, 255, 0.08);
 $white-opacity-12: rgba(255, 255, 255, 0.12);
 
+$red-50: #fef2f2;
+$red-100: #fee2e2;
+$red-200: #fecaca;
 $red-500: #ef4444;
+$red-600: #dc2626;
+$red-700: #b91c1c;
 
 $green-500: #16a34a;
 
 $indigo-600: #4f46e5;
 $indigo-700: #4338ca;
+
+$yellow-500: #eab308;
+
+$sky-100: #e0f2fe;
+$sky-200: #bae6fd;
+$sky-700: #0369a1;
 
 $indigo-600-700: linear-gradient(135deg, $indigo-600, $indigo-700);
 $indigo-700-600: linear-gradient(135deg, $indigo-700, $indigo-600);
