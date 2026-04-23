@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useQuery } from "@tanstack/vue-query";
 
 import { fetchAttendance } from "../api/attendance";
@@ -8,6 +8,9 @@ import { attendanceColumns } from "../constants/attendance";
 import Title from "../components/ui/Title.vue";
 import Table from "../components/ui/Table.vue";
 import Button from "../components/ui/Button.vue";
+import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
+
+const isFeatureComingSoonModalOpen = ref(false);
 
 const { data, isLoading, isError } = useQuery({
   queryKey: ["transactions"],
@@ -22,15 +25,35 @@ const rows = computed(() => {
     time_out: formatTime(item.time_out),
   }));
 });
+
+const openFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = true;
+};
+
+const closeFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = false;
+};
 </script>
 
 <template>
+  <FeatureComingSoon
+    v-if="isFeatureComingSoonModalOpen"
+    @closeModal="closeFeatureComingSoonModal"
+  />
   <section>
     <div class="header">
       <Title text="Attendance" />
       <div class="controls">
-        <Button icon="lucide:clock-plus" text="Time In" />
-        <Button icon="lucide:filter" text="Filter" />
+        <Button
+          icon="lucide:clock-plus"
+          text="Time In"
+          @click="openFeatureComingSoonModal"
+        />
+        <Button
+          icon="lucide:filter"
+          text="Filter"
+          @click="openFeatureComingSoonModal"
+        />
       </div>
     </div>
 

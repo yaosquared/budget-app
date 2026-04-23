@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import { useQuery } from "@tanstack/vue-query";
 
 import { fetchSettings } from "../api/settings";
@@ -7,6 +7,17 @@ import { capitalize } from "../utils/string";
 import { settingsColumns } from "../constants/settings";
 import Title from "../components/ui/Title.vue";
 import Table from "../components/ui/Table.vue";
+import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
+
+const isFeatureComingSoonModalOpen = ref(false);
+
+const openFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = true;
+};
+
+const closeFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = false;
+};
 
 const { data, isLoading, isError } = useQuery({
   queryKey: ["settings"],
@@ -35,6 +46,10 @@ const rows = computed(() => {
 </script>
 
 <template>
+  <FeatureComingSoon
+    v-if="isFeatureComingSoonModalOpen"
+    @closeModal="closeFeatureComingSoonModal"
+  />
   <section>
     <div class="header">
       <Title text="Settings" />
@@ -44,6 +59,7 @@ const rows = computed(() => {
       :rows="rows"
       :isLoading="isLoading"
       :isError="isError"
+      @edit="openFeatureComingSoonModal"
     />
   </section>
 </template>

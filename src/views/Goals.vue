@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
 import { useQuery } from "@tanstack/vue-query";
+import { Icon } from "@iconify/vue";
 
 import { fetchGoals } from "../api/goals";
 import { IGoalsData } from "../types/goals";
@@ -9,9 +10,11 @@ import { statusOptions } from "../constants/goals";
 import Title from "../components/ui/Title.vue";
 import Button from "../components/ui/Button.vue";
 import Dropdown from "../components/ui/Dropdown.vue";
+import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
 
 const openDropdown = ref<string | null>(null);
 const goals = ref<IGoalsData[]>([]);
+const isFeatureComingSoonModalOpen = ref(false);
 
 const { data, isLoading, isError } = useQuery({
   queryKey: ["goals"],
@@ -41,13 +44,29 @@ const isDueDate = (dueDate: string) => {
   if (due < today) return "overdue";
   if (due.getTime() === today.getTime()) return "due-today";
 };
+
+const openFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = true;
+};
+
+const closeFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = false;
+};
 </script>
 
 <template>
+  <FeatureComingSoon
+    v-if="isFeatureComingSoonModalOpen"
+    @closeModal="closeFeatureComingSoonModal"
+  />
   <section>
     <div class="header">
       <Title text="Goals" />
-      <Button icon="lucide:circle-plus" text="New Goal" />
+      <Button
+        icon="lucide:circle-plus"
+        text="New Goal"
+        @click="openFeatureComingSoonModal"
+      />
     </div>
     <div class="content">
       <div v-if="isLoading" class="message loading">Loading...</div>
@@ -57,15 +76,23 @@ const isDueDate = (dueDate: string) => {
       </div>
       <div v-else class="list">
         <div v-for="goal in goals" :key="goal.id" class="card">
-          <div class="info">
-            <h3>{{ goal.title }}</h3>
-            <p>{{ goal.description }}</p>
-            <small
-              >Due:
-              <span :class="isDueDate(goal.due_date)">
-                {{ goal.due_date }}
-              </span></small
-            >
+          <div class="left">
+            <Icon
+              icon="lucide:grip-vertical"
+              class="drag-handle"
+              width="18"
+              height="18"
+            />
+            <div class="info">
+              <h3>{{ goal.title }}</h3>
+              <p>{{ goal.description }}</p>
+              <small
+                >Due:
+                <span :class="isDueDate(goal.due_date)">
+                  {{ goal.due_date }}
+                </span></small
+              >
+            </div>
           </div>
           <div class="actions">
             <Dropdown
@@ -124,44 +151,62 @@ section {
         justify-content: space-between;
         align-items: center;
         padding: 14px 16px;
-        border: 1px solid #eee;
+        border: 1px solid $slate-200;
         border-radius: 10px;
-        background: white;
+        background: $white;
         transition: 0.2s ease;
 
         &:hover {
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-          border-color: #e5e7eb;
+          box-shadow: 0 4px 12px $black-opacity-06;
+          border-color: $slate-200;
         }
 
-        .info {
+        &:has(.drag-handle:hover) {
+          background: $slate-50;
+        }
+
+        .left {
           display: flex;
-          flex-direction: column;
-          gap: 4px;
+          align-items: center;
+          gap: 15px;
 
-          h3 {
-            margin: 0;
-            font-size: 15px;
-            font-weight: 600;
-            color: #111827;
+          .drag-handle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            color: $slate-400;
           }
 
-          p {
-            margin: 0;
-            font-size: 13px;
-            color: #6b7280;
-          }
+          .info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
 
-          small {
-            font-size: 12px;
-            color: #9ca3af;
-
-            .overdue {
-              color: #dc2626;
+            h3 {
+              margin: 0;
+              font-size: 15px;
+              font-weight: 600;
+              color: $black-900;
             }
 
-            .due-today {
-              color: #eab308;
+            p {
+              margin: 0;
+              font-size: 13px;
+              color: $slate-500;
+            }
+
+            small {
+              font-size: 12px;
+              color: $slate-400;
+
+              .overdue {
+                color: $red-500;
+              }
+
+              .due-today {
+                color: $indigo-600;
+              }
             }
           }
         }
@@ -175,7 +220,7 @@ section {
 
       .empty {
         text-align: center;
-        color: #888;
+        color: $slate-500;
         padding: 20px;
       }
     }

@@ -7,6 +7,10 @@ const props = defineProps<{
   isLoading: boolean;
   isError: boolean;
 }>();
+
+const emit = defineEmits({
+  edit: (row) => true,
+});
 </script>
 
 <template>
@@ -47,7 +51,7 @@ const props = defineProps<{
               {{ formatDateTime(row[col.key]) }}
             </span>
             <span v-else-if="col.key === 'actions'" class="actions">
-              <button class="edit">Edit</button>
+              <button class="edit" @click="emit('edit', row)">Edit</button>
             </span>
             <span v-else>
               {{ row[col.key] }}

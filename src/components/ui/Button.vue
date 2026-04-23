@@ -16,7 +16,7 @@ const props = defineProps({
 
 <style scoped lang="scss">
 button {
-  background: linear-gradient(135deg, $indigo-600, $indigo-700);
+  background: $indigo-600-700;
   color: $white;
   border: 1px solid transparent;
   padding: 10px 18px;
@@ -30,10 +30,10 @@ button {
   justify-content: center;
   gap: 6px;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px $black-opacity-06;
 
   &:hover {
-    background-color: $indigo-700;
+    background: $indigo-700-600;
     transform: translateY(-1px);
   }
 
@@ -45,7 +45,7 @@ button {
     outline: none;
     box-shadow:
       0 0 0 3px $white-opacity-08,
-      0 6px 14px rgba(0, 0, 0, 0.25);
+      0 6px 14px $black-opacity-06;
   }
 
   &:disabled {

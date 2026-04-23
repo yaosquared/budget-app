@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useQuery } from "@tanstack/vue-query";
 
 import { fetchBudgets } from "../api/budget";
@@ -7,6 +7,9 @@ import { budgetColumns } from "../constants/budget";
 import Table from "../components/ui/Table.vue";
 import Title from "../components/ui/Title.vue";
 import Button from "../components/ui/Button.vue";
+import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
+
+const isFeatureComingSoonModalOpen = ref(false);
 
 const { data, isLoading, isError } = useQuery({
   queryKey: ["budgets"],
@@ -34,13 +37,29 @@ const rows = computed(() => {
     };
   });
 });
+
+const openFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = true;
+};
+
+const closeFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = false;
+};
 </script>
 
 <template>
+  <FeatureComingSoon
+    v-if="isFeatureComingSoonModalOpen"
+    @closeModal="closeFeatureComingSoonModal"
+  />
   <section>
     <div class="header">
       <Title text="Budget" />
-      <Button icon="lucide:circle-plus" text="New Budget" />
+      <Button
+        icon="lucide:circle-plus"
+        text="New Budget"
+        @click="openFeatureComingSoonModal"
+      />
     </div>
     <div class="content">
       <Table

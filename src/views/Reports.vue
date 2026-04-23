@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useQuery } from "@tanstack/vue-query";
 
 import { fetchReportHistory } from "../api/reports";
@@ -8,6 +8,9 @@ import { formatDateTime } from "../utils/dateTime";
 import Title from "../components/ui/Title.vue";
 import Table from "../components/ui/Table.vue";
 import Button from "../components/ui/Button.vue";
+import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
+
+const isFeatureComingSoonModalOpen = ref(false);
 
 const { data, isLoading, isError } = useQuery({
   queryKey: ["reports"],
@@ -20,13 +23,29 @@ const rows = computed(() => {
     exported_date: formatDateTime(item.exported_date),
   }));
 });
+
+const openFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = true;
+};
+
+const closeFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = false;
+};
 </script>
 
 <template>
+  <FeatureComingSoon
+    v-if="isFeatureComingSoonModalOpen"
+    @closeModal="closeFeatureComingSoonModal"
+  />
   <section>
     <div class="header">
       <Title text="Reports" />
-      <Button icon="lucide:download" text="Export" />
+      <Button
+        icon="lucide:download"
+        text="Export"
+        @click="openFeatureComingSoonModal"
+      />
     </div>
 
     <Table

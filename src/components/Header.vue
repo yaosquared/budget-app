@@ -1,13 +1,31 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { RouterLink } from "vue-router";
+import { ref } from "vue";
+
 import { IHeaderEmits } from "../types/header";
+import FeatureComingSoon from "./modals/FeatureComingSoon.vue";
+import avatar from "../assets/avatar.png";
+
+const isFeatureComingSoonModalOpen = ref(false);
 
 const emit = defineEmits<IHeaderEmits>();
-const isDev = import.meta.env.DEV;
+// const isDev = import.meta.env.DEV;
+
+const openFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = true;
+};
+
+const closeFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = false;
+};
 </script>
 
 <template>
+  <FeatureComingSoon
+    v-if="isFeatureComingSoonModalOpen"
+    @closeModal="closeFeatureComingSoonModal"
+  />
   <header>
     <div class="left">
       <button class="burger" @click="emit('toggleSidebar')">
@@ -15,15 +33,18 @@ const isDev = import.meta.env.DEV;
       </button>
       <RouterLink to="/">
         <h1>
-          <span v-if="isDev">App</span>
-          <div v-else>
+          <span class="logo-ip">Ip</span><span class="logo-own">Own</span>
+          <!-- <span v-if="isDev">App</span> -->
+          <!-- <div v-else>
             <span class="logo-ip">Ip</span><span class="logo-own">Own</span>
-          </div>
+          </div> -->
         </h1>
       </RouterLink>
     </div>
     <div class="right">
-      <div class="avatar-container"></div>
+      <button @click="openFeatureComingSoonModal" class="avatar-container">
+        <img :src="avatar" alt="avatar" />
+      </button>
     </div>
   </header>
 </template>
@@ -84,11 +105,24 @@ header {
 
   .right {
     .avatar-container {
-      border: 3px solid $white;
-      border-radius: 100%;
       width: 40px;
       height: 40px;
+      border: 3px solid $white;
+      border-radius: 50%;
+      padding: 0;
+      overflow: hidden;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        border-radius: 50%;
+      }
     }
   }
 }
