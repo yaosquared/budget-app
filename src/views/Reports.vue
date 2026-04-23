@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/vue-query";
 
 import { fetchReportHistory } from "../api/reports";
 import { reportsColumns } from "../constants/reports";
+import { formatDateTime } from "../utils/dateTime";
 import Title from "../components/ui/Title.vue";
 import Table from "../components/ui/Table.vue";
 import Button from "../components/ui/Button.vue";
@@ -13,7 +14,12 @@ const { data, isLoading, isError } = useQuery({
   queryFn: fetchReportHistory,
 });
 
-const rows = computed(() => data.value ?? []);
+const rows = computed(() => {
+  return (data.value ?? []).map((item) => ({
+    ...item,
+    exported_date: formatDateTime(item.exported_date),
+  }));
+});
 </script>
 
 <template>
