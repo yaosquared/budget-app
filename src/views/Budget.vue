@@ -17,7 +17,7 @@ const rows = computed(() => {
   return (data.value ?? []).map((item) => {
     const budget = Number(item.budget || 0);
     const spent = Number(item.spent || 0);
-    const remaining = Number(item.remaining || 0);
+    const remaining = budget - spent;
 
     let status = "healthy";
 

@@ -106,17 +106,20 @@ const props = defineProps<{
             }
 
             &.healthy,
-            &.present {
+            &.present,
+            &.Success {
               color: #16a34a;
             }
 
             &.warning,
-            &.late {
+            &.late,
+            &.Pending {
               color: #eab308;
             }
 
             &.over,
-            &.absent {
+            &.absent,
+            &.Error {
               color: #dc2626;
             }
 
