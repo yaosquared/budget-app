@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/vue-query";
 
 import { fetchSettings } from "../api/settings";
 import { capitalize } from "../utils/string";
-import { settingsColumns } from "../constants/settings";
+import { SETTINGS_COLUMNS } from "../constants/settings";
 import Title from "../components/ui/Title.vue";
 import Table from "../components/ui/Table.vue";
 import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
@@ -55,7 +55,7 @@ const rows = computed(() => {
       <Title text="Settings" />
     </div>
     <Table
-      :columns="settingsColumns"
+      :columns="SETTINGS_COLUMNS"
       :rows="rows"
       :isLoading="isLoading"
       :isError="isError"

@@ -1,4 +1,4 @@
-export const reportsColumns = [
+export const REPORTS_COLUMNS = [
   { key: "type", label: "Report Type" },
   { key: "format", label: "Format" },
   { key: "exported_by", label: "Exported By" },

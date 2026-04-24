@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/vue-query";
 import { Icon } from "@iconify/vue";
 
 import { fetchTransactions } from "../api/transactions";
-import { transactionColumns } from "../constants/transactions";
+import { TRANSACTION_COLUMNS } from "../constants/transactions";
 import Title from "../components/ui/Title.vue";
 import Button from "../components/ui/Button.vue";
 import Table from "../components/ui/Table.vue";
@@ -106,7 +106,7 @@ const rows = computed(() => data.value ?? []);
       />
     </div>
     <Table
-      :columns="transactionColumns"
+      :columns="TRANSACTION_COLUMNS"
       :rows="rows"
       :isLoading="isLoading"
       :isError="isError"
@@ -124,7 +124,6 @@ form {
   background: $white;
   width: 100%;
   max-width: 600px;
-  font-family: system-ui, sans-serif;
 
   .close-btn {
     all: unset;
@@ -145,7 +144,7 @@ form {
   }
 
   .form-header {
-    margin-bottom: 18px;
+    margin-bottom: 24px;
 
     h4 {
       margin: 0;
@@ -165,38 +164,6 @@ form {
     display: flex;
     flex-direction: column;
     gap: 16px;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-
-    label {
-      font-size: 13px;
-      font-weight: 600;
-      color: $gray-700;
-    }
-
-    input {
-      padding: 11px 12px;
-      border: 1px solid $slate-200;
-      border-radius: 10px;
-      background: $slate-50;
-      font-size: 14px;
-      transition: all 0.2s ease;
-
-      &::placeholder {
-        color: $slate-400;
-      }
-
-      &:focus {
-        outline: none;
-        border-color: $indigo-600;
-        background: $white;
-        box-shadow: 0 0 0 4px $indigo-600-opacity-15;
-      }
-    }
   }
 
   .form-actions {

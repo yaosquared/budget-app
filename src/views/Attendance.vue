@@ -4,13 +4,15 @@ import { useQuery } from "@tanstack/vue-query";
 
 import { fetchAttendance } from "../api/attendance";
 import { formatDate, formatTime } from "../utils/dateTime";
-import { attendanceColumns } from "../constants/attendance";
+import { ATTENDANCE_COLUMNS } from "../constants/attendance";
 import Title from "../components/ui/Title.vue";
 import Table from "../components/ui/Table.vue";
 import Button from "../components/ui/Button.vue";
 import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
+import ConfirmationModal from "../components/modals/ConfirmationModal.vue";
 
 const isFeatureComingSoonModalOpen = ref(false);
+const isConfirmationModalOpen = ref(false);
 
 const { data, isLoading, isError } = useQuery({
   queryKey: ["transactions"],
@@ -26,6 +28,14 @@ const rows = computed(() => {
   }));
 });
 
+const openConfirmationModal = () => {
+  isConfirmationModalOpen.value = true;
+};
+
+const closeConfirmationModal = () => {
+  isConfirmationModalOpen.value = false;
+};
+
 const openFeatureComingSoonModal = () => {
   isFeatureComingSoonModalOpen.value = true;
 };
@@ -36,6 +46,12 @@ const closeFeatureComingSoonModal = () => {
 </script>
 
 <template>
+  <ConfirmationModal
+    v-if="isConfirmationModalOpen"
+    title="Are you sure you want to time in?"
+    subTitle="This action cannot be undone."
+    @closeModal="closeConfirmationModal"
+  />
   <FeatureComingSoon
     v-if="isFeatureComingSoonModalOpen"
     @closeModal="closeFeatureComingSoonModal"
@@ -47,7 +63,7 @@ const closeFeatureComingSoonModal = () => {
         <Button
           icon="lucide:clock-plus"
           text="Time In"
-          @click="openFeatureComingSoonModal"
+          @click="openConfirmationModal"
         />
         <Button
           icon="lucide:filter"
@@ -58,7 +74,7 @@ const closeFeatureComingSoonModal = () => {
     </div>
 
     <Table
-      :columns="attendanceColumns"
+      :columns="ATTENDANCE_COLUMNS"
       :rows="rows"
       :isLoading="isLoading"
       :isError="isError"

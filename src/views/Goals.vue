@@ -1,20 +1,29 @@
 <script setup lang="ts">
-import { ref, watchEffect } from "vue";
+import { reactive, ref, watchEffect } from "vue";
 import { useQuery } from "@tanstack/vue-query";
 import { Icon } from "@iconify/vue";
 
 import { fetchGoals } from "../api/goals";
 import { IGoalsData } from "../types/goals";
 import { formatDate } from "../utils/dateTime";
-import { statusOptions } from "../constants/goals";
+import { STATUS_OPTIONS } from "../constants/goals";
 import Title from "../components/ui/Title.vue";
 import Button from "../components/ui/Button.vue";
 import Dropdown from "../components/ui/Dropdown.vue";
 import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
+import Modal from "../components/ui/Modal.vue";
+import Input from "../components/ui/Input.vue";
 
 const openDropdown = ref<string | null>(null);
+const isModalOpen = ref(false);
 const goals = ref<IGoalsData[]>([]);
 const isFeatureComingSoonModalOpen = ref(false);
+
+const formData = reactive({
+  title: "",
+  description: "",
+  dueDate: "",
+});
 
 const { data, isLoading, isError } = useQuery({
   queryKey: ["goals"],
@@ -45,6 +54,32 @@ const isDueDate = (dueDate: string) => {
   if (due.getTime() === today.getTime()) return "due-today";
 };
 
+const openModal = () => {
+  isModalOpen.value = true;
+};
+
+const closeModal = () => {
+  isModalOpen.value = false;
+  resetForm();
+};
+
+const resetForm = () => {
+  formData.title = "";
+  formData.description = "";
+  formData.dueDate = "";
+};
+
+const submitBudget = () => {
+  const payload = {
+    ...formData,
+    due_date: new Date(formData.dueDate).toISOString(),
+  };
+
+  // TODO: integrate post api route
+  console.log("Submitting:", payload);
+  closeModal();
+};
+
 const openFeatureComingSoonModal = () => {
   isFeatureComingSoonModalOpen.value = true;
 };
@@ -55,6 +90,43 @@ const closeFeatureComingSoonModal = () => {
 </script>
 
 <template>
+  <Modal @closeModal="closeModal" v-if="isModalOpen">
+    <form @submit.prevent="submitBudget">
+      <button @click="closeModal" class="close-btn" type="button">
+        <Icon icon="lucide:x" width="18" height="18" />
+      </button>
+      <div class="form-header">
+        <h4>New Budget</h4>
+        <p class="subtitle">Fill in the details below</p>
+      </div>
+      <div class="form-body">
+        <Input
+          label="Title"
+          v-model="formData.title"
+          placeholder="e.g. Groceries, Transport, Rent"
+        />
+
+        <Dropdown
+          type="date"
+          v-model="formData.dueDate"
+          label="Due Date"
+          placeholder="Pick a date"
+          :open="openDropdown === 'dueDate'"
+          @toggle="toggleDropdown('dueDate')"
+        />
+        <Input
+          label="Description"
+          type="text"
+          v-model="formData.description"
+          placeholder="e.g. Monthly grocery budget for home"
+        />
+        <div class="form-actions">
+          <!-- <button type="submit">Submit</button> -->
+          <button @click="openFeatureComingSoonModal">Submit</button>
+        </div>
+      </div>
+    </form>
+  </Modal>
   <FeatureComingSoon
     v-if="isFeatureComingSoonModalOpen"
     @closeModal="closeFeatureComingSoonModal"
@@ -62,25 +134,11 @@ const closeFeatureComingSoonModal = () => {
   <section>
     <div class="header">
       <Title text="Goals" />
-      <Button
-        icon="lucide:circle-plus"
-        text="New Goal"
-        @click="openFeatureComingSoonModal"
-      />
+      <Button icon="lucide:circle-plus" text="New Goal" @click="openModal" />
     </div>
     <div class="content">
       <div v-if="isLoading" class="list">
-        <div v-for="n in 10" :key="n" class="card skeleton">
-          <div class="left">
-            <div class="skeleton-icon"></div>
-            <div class="info">
-              <div class="skeleton-line title"></div>
-              <div class="skeleton-line desc"></div>
-              <div class="skeleton-line small"></div>
-            </div>
-          </div>
-          <div class="skeleton-badge"></div>
-        </div>
+        <div v-for="n in 10" :key="n" class="card skeleton"></div>
       </div>
       <div v-else-if="isError" class="message error">Error fetching data</div>
       <div v-else-if="goals.length === 0" class="message">
@@ -109,7 +167,7 @@ const closeFeatureComingSoonModal = () => {
           <div class="actions">
             <Dropdown
               v-model="goal.status"
-              :options="statusOptions"
+              :options="STATUS_OPTIONS"
               placeholder="Status"
               :open="openDropdown === goal.id"
               @toggle="toggleDropdown(goal.id)"
@@ -122,6 +180,95 @@ const closeFeatureComingSoonModal = () => {
 </template>
 
 <style scoped lang="scss">
+form {
+  position: relative;
+  padding: 28px;
+  border-radius: 14px;
+  background: $white;
+  width: 100%;
+  max-width: 600px;
+  scrollbar-width: thin;
+  scrollbar-color: $slate-300 transparent;
+
+  .close-btn {
+    all: unset;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    padding: 6px;
+    border-radius: 8px;
+    transition: 0.2s ease;
+
+    &:hover {
+      background: $black-opacity-06;
+      transform: scale(1.05);
+    }
+  }
+
+  .form-header {
+    margin-bottom: 24px;
+
+    h4 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: $black-900;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: $slate-500;
+    }
+  }
+
+  .form-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      label {
+        font-size: 13px;
+        font-weight: 600;
+        color: $black-800;
+      }
+    }
+  }
+
+  .form-actions {
+    margin-top: 6px;
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, $indigo-700, $indigo-600);
+      color: $white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
 section {
   display: flex;
   flex-direction: column;
@@ -239,7 +386,7 @@ section {
             $slate-200 75%
           );
           background-size: 200% 100%;
-          animation: shimmer 2s infinite;
+          animation: shimmer 2.4s infinite;
         }
       }
 

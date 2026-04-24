@@ -1,4 +1,4 @@
-export const settingsColumns = [
+export const SETTINGS_COLUMNS = [
   { key: "code", label: "Code" },
   { key: "description", label: "Description" },
   { key: "value", label: "Value" },

@@ -63,19 +63,6 @@ const props = defineProps<{
     scrollbar-width: thin;
     scrollbar-color: $slate-300 transparent;
 
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: $slate-300;
-      border-radius: 999px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
     .budget-item {
       display: flex;
       flex-direction: column;

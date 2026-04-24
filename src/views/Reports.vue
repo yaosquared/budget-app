@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import { useQuery } from "@tanstack/vue-query";
 
 import { fetchReportHistory } from "../api/reports";
-import { reportsColumns } from "../constants/reports";
+import { REPORTS_COLUMNS } from "../constants/reports";
 import { formatDateTime } from "../utils/dateTime";
 import Title from "../components/ui/Title.vue";
 import Table from "../components/ui/Table.vue";
@@ -49,7 +49,7 @@ const closeFeatureComingSoonModal = () => {
     </div>
 
     <Table
-      :columns="reportsColumns"
+      :columns="REPORTS_COLUMNS"
       :rows="rows"
       :isLoading="isLoading"
       :isError="isError"
