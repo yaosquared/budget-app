@@ -1,11 +1,15 @@
 import axios from "axios";
+import { IMetricsResponse } from "../types/dashboard";
 import { IBudgetsResponse } from "../types/budget";
 import { ITransactionsResponse } from "../types/transactions";
 
 export const fetchMetrics = async () => {
-  const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/metrics`, {
-    user_id: "24f98e8a-2938-40b8-bf82-a0e5fa01a962",
-  });
+  const { data } = await axios.post<IMetricsResponse>(
+    `${import.meta.env.VITE_API_URL}/metrics`,
+    {
+      user_id: "24f98e8a-2938-40b8-bf82-a0e5fa01a962",
+    },
+  );
 
   return data.data;
 };

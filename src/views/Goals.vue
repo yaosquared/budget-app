@@ -69,7 +69,19 @@ const closeFeatureComingSoonModal = () => {
       />
     </div>
     <div class="content">
-      <div v-if="isLoading" class="message loading">Loading...</div>
+      <div v-if="isLoading" class="list">
+        <div v-for="n in 10" :key="n" class="card skeleton">
+          <div class="left">
+            <div class="skeleton-icon"></div>
+            <div class="info">
+              <div class="skeleton-line title"></div>
+              <div class="skeleton-line desc"></div>
+              <div class="skeleton-line small"></div>
+            </div>
+          </div>
+          <div class="skeleton-badge"></div>
+        </div>
+      </div>
       <div v-else-if="isError" class="message error">Error fetching data</div>
       <div v-else-if="goals.length === 0" class="message">
         No data available
@@ -215,6 +227,19 @@ section {
           min-width: 160px;
           display: flex;
           justify-content: flex-end;
+        }
+
+        &.skeleton {
+          min-height: 100px;
+          pointer-events: none;
+          background: linear-gradient(
+            90deg,
+            $slate-200 25%,
+            $slate-100 50%,
+            $slate-200 75%
+          );
+          background-size: 200% 100%;
+          animation: shimmer 2s infinite;
         }
       }
 
