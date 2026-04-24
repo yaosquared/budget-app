@@ -2,7 +2,7 @@
 
 ### View Live Preview Here
 
-Coming soon...
+[Ledgr](https://ledgr-self.vercel.app/)
 
 ### Status
 
@@ -22,10 +22,11 @@ A personal finance and productivity management application designed to help user
 - Goal Setting: Define and track financial goals to stay motivated and on target.
 - Attendance Monitoring: Log and review attendance records directly within the app.
 - Reports: Generate detailed reports for deeper insights into your financial activity.
+- Settings: Configure app preferences such as user profile, currency, budget defaults, and other system settings.
 
 ### Tech Stack
 
-- Framework: Vue 3 (Composition API)
+- Framework: Vue.js (Composition API)
 - Language : TypeScript
 - Build Tool: Vite
 - Routing: Vue Router
