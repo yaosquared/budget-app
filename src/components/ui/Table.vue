@@ -1,20 +1,46 @@
 <script setup lang="ts">
-import { formatDateTime } from "../../utils/dateTime";
+import { ref } from "vue";
 
-const props = defineProps<{
-  columns: { key: string; label: string }[];
-  rows: Record<string, any>[];
-  isLoading: boolean;
-  isError: boolean;
-}>();
+import { formatDateTime } from "../../utils/dateTime";
+import ConfirmationModal from "../modals/ConfirmationModal.vue";
+import { ITable } from "../../types/ui";
+
+const props = defineProps<ITable>();
 
 const emit = defineEmits({
   edit: (row) => true,
   delete: (row) => true,
 });
+
+const selectedRow = ref<any>(null);
+const isDeleteConfirmationModalOpen = ref(false);
+
+const openDeleteConfirmationModal = (row: any) => {
+  selectedRow.value = row;
+  isDeleteConfirmationModalOpen.value = true;
+};
+
+const closeDeleteConfirmationModal = () => {
+  isDeleteConfirmationModalOpen.value = false;
+};
+
+const handleDeleteRow = () => {
+  if (selectedRow.value) {
+    console.log("selectedRow.value", selectedRow.value);
+    // emit("delete", selectedRow.value);
+  }
+  closeDeleteConfirmationModal();
+};
 </script>
 
 <template>
+  <ConfirmationModal
+    v-if="isDeleteConfirmationModalOpen"
+    title="Are you sure you want to delete this record?"
+    subTitle="This action cannot be undone."
+    @closeModal="closeDeleteConfirmationModal"
+    @confirm="handleDeleteRow"
+  />
   <div class="table-wrapper">
     <table :class="{ empty: !rows?.length }">
       <thead>
@@ -26,8 +52,8 @@ const emit = defineEmits({
       </thead>
 
       <tbody>
-        <tr v-if="isLoading" class="message loading">
-          <td :colspan="columns.length">Loading...</td>
+        <tr v-for="n in 20" :key="n" v-if="isLoading" class="message loading">
+          <td v-if="isLoading" :colspan="columns.length" class="skeleton"></td>
         </tr>
         <tr v-else-if="isError" class="message error">
           <td :colspan="columns.length">Error fetching data</td>
@@ -53,7 +79,11 @@ const emit = defineEmits({
             </span>
             <span v-else-if="col.key === 'actions'" class="actions">
               <button class="edit" @click="emit('edit', row)">Edit</button>
-              <button class="delete" @click="emit('delete', row)">
+              <button
+                v-if="page !== 'settings'"
+                class="delete"
+                @click="openDeleteConfirmationModal(row)"
+              >
                 Delete
               </button>
             </span>
@@ -69,7 +99,7 @@ const emit = defineEmits({
 
 <style scoped lang="scss">
 .table-wrapper {
-  overflow-x: auto;
+  overflow: hidden;
   height: 100%;
 
   table {
@@ -87,25 +117,46 @@ const emit = defineEmits({
       text-align: left;
       border-bottom: 1px solid $gray-200;
       background: $white;
+      white-space: nowrap;
     }
 
     thead {
-      th {
-        background: $gray-50;
-        font-weight: 600;
+      tr {
+        display: table;
+        width: 100%;
+        table-layout: fixed;
 
-        &:first-child {
-          border-top-left-radius: 8px;
-        }
+        th {
+          position: sticky;
+          top: 0;
+          z-index: 2;
+          background-color: $gray-50;
+          font-weight: 600;
 
-        &:last-child {
-          border-top-right-radius: 8px;
+          &:first-child {
+            border-top-left-radius: 8px;
+          }
+
+          &:last-child {
+            border-top-right-radius: 8px;
+          }
         }
       }
     }
 
     tbody {
+      display: block;
+      overflow-y: auto;
+      height: 100%;
+      width: 100%;
+      scrollbar-width: thin;
+      scrollbar-color: $slate-300 transparent;
+
       tr {
+        display: table;
+        width: 100%;
+        table-layout: fixed;
+
         td {
           span {
             &.status {
@@ -177,10 +228,26 @@ const emit = defineEmits({
           }
 
           &.loading {
+            width: 100%;
             color: $slate-400;
+
+            > td {
+              &.skeleton {
+                height: 60px;
+                background: linear-gradient(
+                  90deg,
+                  $slate-200 25%,
+                  $slate-100 50%,
+                  $slate-200 75%
+                );
+                background-size: 200% 100%;
+                animation: shimmer 1.5s infinite;
+              }
+            }
           }
 
           &.error {
+            height: 100%;
             color: $red-500;
           }
         }

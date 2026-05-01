@@ -1,10 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { Icon } from "@iconify/vue";
 
-const props = defineProps({
-  text: String,
-  icon: String,
-});
+import { IButton } from "../../types/ui";
+
+const props = defineProps<IButton>();
 </script>
 
 <template>

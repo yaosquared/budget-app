@@ -1,7 +1,7 @@
-<script setup>
-defineProps({
-  text: String,
-});
+<script setup lang="ts">
+import { ITitle } from "../../types/ui";
+
+const props = defineProps<ITitle>();
 </script>
 
 <template>

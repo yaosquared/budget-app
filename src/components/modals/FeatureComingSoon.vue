@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
+
 import Modal from "../ui/Modal.vue";
 
 const emit = defineEmits<{

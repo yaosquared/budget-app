@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import { IMetricsTransformed } from "../types/dashboard";
+import { IMetrics } from "../types/dashboard";
 
-const props = defineProps<{
-  metrics: IMetricsTransformed[];
-  isMetricsDataLoading: boolean;
-  isMetricsDataError: boolean;
-}>();
+const props = defineProps<IMetrics>();
 </script>
 
 <template>

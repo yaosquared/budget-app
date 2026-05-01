@@ -1,52 +1,51 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { computed, ref, watch } from "vue";
+import { onClickOutside } from "@vueuse/core";
 
-import { DAYS, MONTHS } from "../../constants/ui";
-import { Option } from "../../types/ui";
+import { DAYS, HOURS, MINUTES, MONTHS, PERIODS } from "../../constants/ui";
+import { IDropdown } from "../../types/ui";
+import {
+  getCalendarDays,
+  getStartOfToday,
+  parseISODate,
+  toISODate,
+} from "../../utils/dateTime";
 
-const props = defineProps<{
-  modelValue: string;
-  options?: Option[];
-  label?: string;
-  placeholder?: string;
-  open: boolean;
-  type?: "select" | "date";
-}>();
+const props = defineProps<IDropdown>();
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: string): void;
   (e: "toggle"): void;
 }>();
 
-const isDate = computed(() => props.type === "date");
+const today = getStartOfToday();
 
-const selectedLabel = computed(() => {
-  if (isDate.value)
-    return displayDate.value || props.placeholder || "Select a date";
+const dropdownEl = ref<HTMLElement | null>(null);
+const viewYear = ref(today.getFullYear());
+const viewMonth = ref(today.getMonth());
+const selectedHour = ref("12");
+const selectedMinute = ref("00");
+const selectedPeriod = ref("AM");
+
+const isDate = computed(() => props.type === "date");
+const isTime = computed(() => props.type === "time");
+
+const selectedOptionLabel = computed(() => {
+  if (isDate.value) return displayDate.value || props.placeholder;
+  if (isTime.value) return displayTime.value || props.placeholder;
   return (
     props.options?.find((o) => o.value === props.modelValue)?.label ||
-    props.placeholder ||
-    "Select"
+    props.placeholder
   );
 });
 
-const select = (value: string) => {
+const selectOptionValue = (value: string) => {
   emit("update:modelValue", value);
   emit("toggle");
 };
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-
-const viewYear = ref(today.getFullYear());
-const viewMonth = ref(today.getMonth());
-
-const selectedDate = computed(() => {
-  if (!props.modelValue) return null;
-  const d = new Date(`${props.modelValue}T00:00:00`);
-  return isNaN(d.getTime()) ? null : d;
-});
+const selectedDate = computed(() => parseISODate(props.modelValue));
 
 const displayDate = computed(() => {
   if (!selectedDate.value) return "";
@@ -57,28 +56,9 @@ const displayDate = computed(() => {
   });
 });
 
-const calendarDays = computed(() => {
-  const year = viewYear.value;
-  const month = viewMonth.value;
-  const first = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const daysInPrev = new Date(year, month, 0).getDate();
-
-  const cells: { date: Date; inMonth: boolean }[] = [];
-
-  for (let i = first - 1; i >= 0; i--)
-    cells.push({
-      date: new Date(year, month - 1, daysInPrev - i),
-      inMonth: false,
-    });
-  for (let d = 1; d <= daysInMonth; d++)
-    cells.push({ date: new Date(year, month, d), inMonth: true });
-  let t = 1;
-  while (cells.length < 42)
-    cells.push({ date: new Date(year, month + 1, t++), inMonth: false });
-
-  return cells;
-});
+const calendarDays = computed(() =>
+  getCalendarDays(viewYear.value, viewMonth.value),
+);
 
 const prevMonth = () => {
   if (viewMonth.value === 0) {
@@ -86,6 +66,7 @@ const prevMonth = () => {
     viewYear.value--;
   } else viewMonth.value--;
 };
+
 const nextMonth = () => {
   if (viewMonth.value === 11) {
     viewMonth.value = 0;
@@ -93,11 +74,8 @@ const nextMonth = () => {
   } else viewMonth.value++;
 };
 
-const toISO = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-
 const selectDay = (date: Date) => {
-  emit("update:modelValue", toISO(date));
+  emit("update:modelValue", toISODate(date));
   emit("toggle");
 };
 
@@ -114,35 +92,96 @@ const isToday = (d: Date) => today.toDateString() === d.toDateString();
 
 watch(
   () => props.open,
-  (val) => {
-    if (val && isDate.value && selectedDate.value) {
-      viewYear.value = selectedDate.value.getFullYear();
-      viewMonth.value = selectedDate.value.getMonth();
+  (isOpen) => {
+    if (!isOpen) return;
+
+    if (isDate.value && selectedDate.value) {
+      const date = selectedDate.value;
+      viewYear.value = date.getFullYear();
+      viewMonth.value = date.getMonth();
+    }
+
+    if (isTime.value) {
+      syncTimeColumns();
     }
   },
 );
+
+const handleOutsideDropdownClick = (e: MouseEvent) => {
+  if (
+    props.open &&
+    dropdownEl.value &&
+    !dropdownEl.value.contains(e.target as Node)
+  ) {
+    emit("toggle");
+  }
+};
+
+onClickOutside(dropdownEl, handleOutsideDropdownClick);
+
+const displayTime = computed(() => {
+  if (!props.modelValue) return "";
+  const [h, m] = props.modelValue.split(":");
+  if (!h || !m) return "";
+  const hour = parseInt(h);
+  const period = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+  return `${String(displayHour).padStart(2, "0")}:${m} ${period}`;
+});
+
+const syncTimeColumns = () => {
+  if (!props.modelValue) return;
+  const [h, m] = props.modelValue.split(":");
+  if (!h || !m) return;
+  const hour = parseInt(h);
+  selectedPeriod.value = hour >= 12 ? "PM" : "AM";
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
+  selectedHour.value = String(h12).padStart(2, "0");
+  selectedMinute.value = m;
+};
+
+const commitTime = () => {
+  let h = parseInt(selectedHour.value);
+  if (selectedPeriod.value === "AM") {
+    if (h === 12) h = 0;
+  } else {
+    if (h !== 12) h += 12;
+  }
+  const value = `${String(h).padStart(2, "0")}:${selectedMinute.value}`;
+  emit("update:modelValue", value);
+};
+
+const selectHour = (h: string) => {
+  selectedHour.value = h;
+  commitTime();
+};
+const selectMinute = (m: string) => {
+  selectedMinute.value = m;
+  commitTime();
+};
+const selectPeriod = (p: string) => {
+  selectedPeriod.value = p;
+  commitTime();
+};
+
+const clearTime = () => {
+  emit("update:modelValue", "");
+  if (props.open) emit("toggle");
+};
 </script>
 
 <template>
-  <div class="dropdown" :class="{ open }">
+  <div class="dropdown" :class="{ open }" ref="dropdownEl">
     <label v-if="label">{{ label }}</label>
     <div class="box" @click="emit('toggle')">
-      <Icon
-        v-if="isDate"
-        icon="lucide:calendar"
-        width="15"
-        height="15"
-        class="cal-icon"
-        :class="{ placeholder: !modelValue }"
-      />
       <span class="label-text" :class="{ placeholder: !modelValue }">
-        {{ selectedLabel }}
+        {{ selectedOptionLabel }}
       </span>
       <button
-        v-if="isDate && modelValue"
+        v-if="(isDate || isTime) && modelValue"
         type="button"
         class="clear-btn"
-        @click.stop="clearDate"
+        @click.stop="isTime ? clearTime() : clearDate()"
       >
         <Icon icon="lucide:x" width="11" height="11" />
       </button>
@@ -151,11 +190,19 @@ watch(
         class="arrow"
       />
     </div>
-    <div v-if="open && !isDate" class="menu">
-      <div v-for="opt in options" :key="opt.value" @click="select(opt.value)">
+
+    <!-- Regular select list -->
+    <div v-if="open && !isDate && !isTime" class="menu">
+      <div
+        v-for="opt in options"
+        :key="opt.value"
+        @click="selectOptionValue(opt.value)"
+      >
         {{ opt.label }}
       </div>
     </div>
+
+    <!-- Date calendar -->
     <div v-if="open && isDate" class="menu calendar">
       <div class="cal-header">
         <span class="month-label">{{ MONTHS[viewMonth] }} {{ viewYear }}</span>
@@ -186,12 +233,61 @@ watch(
         </button>
       </div>
       <div class="cal-footer">
-        <button type="button" class="footer-btn" @click="clearDate">
-          Clear
-        </button>
         <button type="button" class="footer-btn accent" @click="selectToday">
           Today
         </button>
+      </div>
+    </div>
+
+    <!-- Time picker: 3 columns -->
+    <div v-if="open && isTime" class="menu time-picker">
+      <div class="col-headers">
+        <span>Hour</span>
+        <span></span>
+        <span>Minute</span>
+        <span></span>
+        <span>Period</span>
+      </div>
+      <div class="time-columns">
+        <!-- Hours -->
+        <ul class="time-col">
+          <li
+            v-for="h in HOURS"
+            :key="h"
+            :class="{ selected: selectedHour === h }"
+            @click="selectHour(h)"
+          >
+            {{ h }}
+          </li>
+        </ul>
+
+        <span class="col-sep">:</span>
+
+        <!-- Minutes -->
+        <ul class="time-col">
+          <li
+            v-for="m in MINUTES"
+            :key="m"
+            :class="{ selected: selectedMinute === m }"
+            @click="selectMinute(m)"
+          >
+            {{ m }}
+          </li>
+        </ul>
+
+        <span class="col-sep"></span>
+
+        <!-- AM / PM -->
+        <ul class="time-col period-col">
+          <li
+            v-for="p in PERIODS"
+            :key="p"
+            :class="{ selected: selectedPeriod === p }"
+            @click="selectPeriod(p)"
+          >
+            {{ p }}
+          </li>
+        </ul>
       </div>
     </div>
   </div>
@@ -271,20 +367,27 @@ watch(
 
   .menu {
     position: absolute;
-    top: calc(100% + 6px);
+    top: 100%;
     left: 0;
     right: 0;
     background: $white;
     border: 1px solid $slate-200;
-    border-radius: 12px;
-    z-index: 50;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    z-index: 9999;
     box-shadow: 0 10px 25px $black-opacity-10;
 
-    &:not(.calendar) {
+    &.open-up {
+      top: auto;
+      bottom: calc(100% + 6px);
+    }
+
+    &:not(.calendar):not(.time-picker) {
       overflow-y: auto;
       max-height: 150px;
       scrollbar-width: thin;
       scrollbar-color: $slate-300 transparent;
+      scrollbar-gutter: stable;
 
       div {
         padding: 10px 12px;
@@ -395,7 +498,7 @@ watch(
 
   .cal-footer {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     border-top: 1px solid $slate-100;
     padding-top: 10px;
 
@@ -421,6 +524,114 @@ watch(
 
         &:hover {
           background: $blue-50;
+        }
+      }
+    }
+  }
+
+  .time-picker {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .col-headers {
+      display: grid;
+      grid-template-columns: 1fr 16px 1fr 16px 1fr;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: $gray-400;
+      padding: 0 2px;
+    }
+
+    .time-columns {
+      display: grid;
+      grid-template-columns: 1fr 16px 1fr 16px 1fr;
+      align-items: start;
+    }
+
+    .col-sep {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      padding-top: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: $gray-300;
+      user-select: none;
+    }
+
+    .time-col {
+      all: unset;
+      display: flex;
+      flex-direction: column;
+      max-height: 160px;
+      overflow-y: auto;
+      scrollbar-width: none;
+      border-radius: 8px;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+
+      li {
+        all: unset;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 4px;
+        font-size: 14px;
+        font-weight: 500;
+        color: $gray-600;
+        cursor: pointer;
+        border-radius: 6px;
+        transition:
+          background-color 0.12s,
+          color 0.12s;
+        text-align: center;
+
+        &:hover:not(.selected) {
+          background: $blue-50;
+          color: $blue-600;
+        }
+
+        &.selected {
+          background: $blue-600;
+          color: $white;
+          font-weight: 700;
+        }
+      }
+    }
+
+    .period-col li {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .time-footer {
+      border-top: 1px solid $slate-100;
+      padding-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+
+      .confirm-btn {
+        all: unset;
+        font-size: 12px;
+        font-weight: 600;
+        color: $white;
+        background: $blue-600;
+        cursor: pointer;
+        padding: 5px 14px;
+        border-radius: 6px;
+        transition: background-color 0.15s;
+
+        &:hover {
+          background: $blue-700;
         }
       }
     }

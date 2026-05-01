@@ -60,6 +60,7 @@ const rows = computed(() => {
       :isLoading="isLoading"
       :isError="isError"
       @edit="openFeatureComingSoonModal"
+      page="settings"
     />
   </section>
 </template>

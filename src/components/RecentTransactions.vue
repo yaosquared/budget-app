@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { IRecentTransactions } from "../types/dashboard";
 
-const props = defineProps<{
-  transactions: IRecentTransactions[];
-  isRecentTransactionsLoading: boolean;
-  isRecentTransactionsError: boolean;
-}>();
+const props = defineProps<IRecentTransactions>();
 </script>
 
 <template>

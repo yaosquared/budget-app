@@ -53,6 +53,7 @@ const closeFeatureComingSoonModal = () => {
       :rows="rows"
       :isLoading="isLoading"
       :isError="isError"
+      page="reports"
     />
   </section>
 </template>

@@ -1,9 +1,7 @@
 <script setup lang="ts">
-const props = defineProps({
-  value: Number,
-  color: String,
-  height: Number,
-});
+import { IProgressBar } from "../../types/ui";
+
+const props = defineProps<IProgressBar>();
 </script>
 
 <template>

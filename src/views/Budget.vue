@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
 import { useQuery } from "@tanstack/vue-query";
+import { Icon } from "@iconify/vue";
 
 import { fetchBudgets } from "../api/budget";
 import { BUDGET_COLUMNS, MONTH_OPTIONS } from "../constants/budget";
@@ -12,8 +13,9 @@ import Modal from "../components/ui/Modal.vue";
 import Input from "../components/ui/Input.vue";
 import Dropdown from "../components/ui/Dropdown.vue";
 
-const isModalOpen = ref(false);
+const isNewBudgetModalOpen = ref(false);
 const isFeatureComingSoonModalOpen = ref(false);
+const openDropdown = ref<string | null>(null);
 
 const formData = reactive({
   category: "",
@@ -48,13 +50,21 @@ const rows = computed(() => {
   });
 });
 
-const openModal = () => {
-  isModalOpen.value = true;
+const openNewBudgetModal = () => {
+  isNewBudgetModalOpen.value = true;
 };
 
-const closeModal = () => {
-  isModalOpen.value = false;
+const closeNewBudgetModal = () => {
+  isNewBudgetModalOpen.value = false;
   resetForm();
+};
+
+const openFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = true;
+};
+
+const closeFeatureComingSoonModal = () => {
+  isFeatureComingSoonModalOpen.value = false;
 };
 
 const resetForm = () => {
@@ -71,18 +81,8 @@ const submitBudget = () => {
 
   // TODO: integrate post api route
   console.log("Submitting:", payload);
-  closeModal();
+  closeNewBudgetModal();
 };
-
-const openFeatureComingSoonModal = () => {
-  isFeatureComingSoonModalOpen.value = true;
-};
-
-const closeFeatureComingSoonModal = () => {
-  isFeatureComingSoonModalOpen.value = false;
-};
-
-const openDropdown = ref<string | null>(null);
 
 const toggleDropdown = (id: string) => {
   openDropdown.value = openDropdown.value === id ? null : id;
@@ -90,9 +90,9 @@ const toggleDropdown = (id: string) => {
 </script>
 
 <template>
-  <Modal @closeModal="closeModal" v-if="isModalOpen">
+  <Modal @closeModal="closeNewBudgetModal" v-if="isNewBudgetModalOpen">
     <form @submit.prevent="submitBudget">
-      <button @click="closeModal" class="close-btn" type="button">
+      <button @click="closeNewBudgetModal" class="close-btn" type="button">
         <Icon icon="lucide:x" width="18" height="18" />
       </button>
       <div class="form-header">
@@ -135,7 +135,11 @@ const toggleDropdown = (id: string) => {
   <section>
     <div class="header">
       <Title text="Budget" />
-      <Button icon="lucide:circle-plus" text="New Budget" @click="openModal" />
+      <Button
+        icon="lucide:circle-plus"
+        text="New Budget"
+        @click="openNewBudgetModal"
+      />
     </div>
     <div class="content">
       <Table
@@ -143,7 +147,8 @@ const toggleDropdown = (id: string) => {
         :rows="rows"
         :isLoading="isLoading"
         :isError="isError"
-        @click="openFeatureComingSoonModal"
+        @edit="openFeatureComingSoonModal"
+        page="budget"
       />
     </div>
   </section>
@@ -152,7 +157,7 @@ const toggleDropdown = (id: string) => {
 <style scoped lang="scss">
 form {
   position: relative;
-  padding: 28px;
+  padding: 18px;
   border-radius: 14px;
   background: $white;
   width: 100%;

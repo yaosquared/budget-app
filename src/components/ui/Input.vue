@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-const props = defineProps({
-  modelValue: [String, Number, null],
-  label: String,
-  type: String,
-  placeholder: String,
-  error: String,
-});
+import { IInput } from "../../types/ui";
+
+const props = defineProps<IInput>();
 
 const emit = defineEmits(["update:modelValue"]);
 
@@ -21,14 +17,7 @@ const inputValue = computed({
   <div class="input-group">
     <label v-if="label">{{ label }}</label>
 
-    <input
-      :type="type"
-      v-model="inputValue"
-      :placeholder="placeholder"
-      :class="{ error: error }"
-    />
-
-    <span v-if="error" class="error-text">{{ error }}</span>
+    <input :type="type" v-model="inputValue" :placeholder="placeholder" />
   </div>
 </template>
 

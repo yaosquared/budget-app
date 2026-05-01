@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { Icon } from "@iconify/vue";
 
 import Modal from "../ui/Modal.vue";
 import FeatureComingSoon from "./FeatureComingSoon.vue";
@@ -7,10 +8,12 @@ import FeatureComingSoon from "./FeatureComingSoon.vue";
 const props = defineProps({
   title: String,
   subTitle: String,
+  type: String,
 });
 
 const emit = defineEmits<{
   (e: "closeModal"): void;
+  (e: "confirm"): void;
 }>();
 
 const isFeatureComingSoonModalOpen = ref(false);
@@ -42,8 +45,16 @@ const closeFeatureComingSoonModal = () => {
 
       <form>
         <div class="content">
-          <h4>{{ title }}</h4>
-          <p>{{ subTitle }}</p>
+          <Icon
+            :icon="type === 'attendance' ? 'lucide:clock' : 'lucide:circle-x'"
+            :color="type === 'attendance' ? 'gray' : 'red'"
+            width="124"
+            height="124"
+          />
+          <div class="text">
+            <h4>{{ title }}</h4>
+            <p>{{ subTitle }}</p>
+          </div>
         </div>
 
         <div class="actions">
@@ -120,22 +131,24 @@ const closeFeatureComingSoonModal = () => {
         flex-direction: column;
         align-items: center;
         text-align: center;
-        gap: 6px;
+        gap: 20px;
         padding: 18px 8px 4px;
 
-        h4 {
-          margin: 0;
-          font-size: 18px;
-          font-weight: 700;
-          color: $black-900;
-          letter-spacing: -0.01em;
-        }
+        .text {
+          h4 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: $black-900;
+            letter-spacing: -0.01em;
+          }
 
-        p {
-          margin: 0;
-          font-size: 14px;
-          color: $gray-500;
-          line-height: 1.4;
+          p {
+            margin: 0;
+            font-size: 14px;
+            color: $gray-500;
+            line-height: 1.4;
+          }
         }
       }
 

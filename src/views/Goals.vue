@@ -15,7 +15,7 @@ import Modal from "../components/ui/Modal.vue";
 import Input from "../components/ui/Input.vue";
 
 const openDropdown = ref<string | null>(null);
-const isModalOpen = ref(false);
+const isNewModalOpen = ref(false);
 const goals = ref<IGoalsData[]>([]);
 const isFeatureComingSoonModalOpen = ref(false);
 
@@ -39,6 +39,15 @@ watchEffect(() => {
   }
 });
 
+const openNewGoalModal = () => {
+  isNewModalOpen.value = true;
+};
+
+const closeNewGoalModal = () => {
+  isNewModalOpen.value = false;
+  resetForm();
+};
+
 const toggleDropdown = (id: string) => {
   openDropdown.value = openDropdown.value === id ? null : id;
 };
@@ -52,15 +61,6 @@ const isDueDate = (dueDate: string) => {
 
   if (due < today) return "overdue";
   if (due.getTime() === today.getTime()) return "due-today";
-};
-
-const openModal = () => {
-  isModalOpen.value = true;
-};
-
-const closeModal = () => {
-  isModalOpen.value = false;
-  resetForm();
 };
 
 const resetForm = () => {
@@ -77,7 +77,7 @@ const submitBudget = () => {
 
   // TODO: integrate post api route
   console.log("Submitting:", payload);
-  closeModal();
+  closeNewGoalModal();
 };
 
 const openFeatureComingSoonModal = () => {
@@ -90,30 +90,31 @@ const closeFeatureComingSoonModal = () => {
 </script>
 
 <template>
-  <Modal @closeModal="closeModal" v-if="isModalOpen">
+  <Modal @closeModal="closeNewGoalModal" v-if="isNewModalOpen">
     <form @submit.prevent="submitBudget">
-      <button @click="closeModal" class="close-btn" type="button">
+      <button @click="closeNewGoalModal" class="close-btn" type="button">
         <Icon icon="lucide:x" width="18" height="18" />
       </button>
       <div class="form-header">
-        <h4>New Budget</h4>
+        <h4>New Goal</h4>
         <p class="subtitle">Fill in the details below</p>
       </div>
       <div class="form-body">
-        <Input
-          label="Title"
-          v-model="formData.title"
-          placeholder="e.g. Groceries, Transport, Rent"
-        />
-
-        <Dropdown
-          type="date"
-          v-model="formData.dueDate"
-          label="Due Date"
-          placeholder="Pick a date"
-          :open="openDropdown === 'dueDate'"
-          @toggle="toggleDropdown('dueDate')"
-        />
+        <div class="group">
+          <Input
+            label="Title"
+            v-model="formData.title"
+            placeholder="e.g. Groceries, Transport, Rent"
+          />
+          <Dropdown
+            type="date"
+            v-model="formData.dueDate"
+            label="Due Date"
+            placeholder="Pick a date"
+            :open="openDropdown === 'dueDate'"
+            @toggle="toggleDropdown('dueDate')"
+          />
+        </div>
         <Input
           label="Description"
           type="text"
@@ -134,7 +135,11 @@ const closeFeatureComingSoonModal = () => {
   <section>
     <div class="header">
       <Title text="Goals" />
-      <Button icon="lucide:circle-plus" text="New Goal" @click="openModal" />
+      <Button
+        icon="lucide:circle-plus"
+        text="New Goal"
+        @click="openNewGoalModal"
+      />
     </div>
     <div class="content">
       <div v-if="isLoading" class="list">
@@ -182,7 +187,7 @@ const closeFeatureComingSoonModal = () => {
 <style scoped lang="scss">
 form {
   position: relative;
-  padding: 28px;
+  padding: 18px;
   border-radius: 14px;
   background: $white;
   width: 100%;
@@ -230,15 +235,16 @@ form {
     flex-direction: column;
     gap: 16px;
 
-    .input-group {
+    .group {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      gap: 16px;
 
-      label {
-        font-size: 13px;
-        font-weight: 600;
-        color: $black-800;
+      .input-group {
+        width: 50%;
+      }
+
+      .dropdown {
+        width: 50%;
       }
     }
   }

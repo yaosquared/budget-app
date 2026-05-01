@@ -12,7 +12,7 @@ import Modal from "../components/ui/Modal.vue";
 import Input from "../components/ui/Input.vue";
 import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
 
-const isModalOpen = ref(false);
+const isNewTransactionModalOpen = ref(false);
 const isFeatureComingSoonModalOpen = ref(false);
 
 const formData = reactive({
@@ -20,22 +20,29 @@ const formData = reactive({
   amount: null,
 });
 
+const { data, isLoading, isError } = useQuery({
+  queryKey: ["transactions"],
+  queryFn: fetchTransactions,
+});
+
+const rows = computed(() => data.value ?? []);
+
+const openNewTransactionModal = () => {
+  isNewTransactionModalOpen.value = true;
+};
+
+const closeNewTransactionModal = () => {
+  isNewTransactionModalOpen.value = false;
+  resetForm();
+};
+
 const openFeatureComingSoonModal = () => {
-  isModalOpen.value = false;
+  isNewTransactionModalOpen.value = false;
   isFeatureComingSoonModalOpen.value = true;
 };
 
 const closeFeatureComingSoonModal = () => {
   isFeatureComingSoonModalOpen.value = false;
-  resetForm();
-};
-
-const openModal = () => {
-  isModalOpen.value = true;
-};
-
-const closeModal = () => {
-  isModalOpen.value = false;
   resetForm();
 };
 
@@ -52,21 +59,17 @@ const submitTransaction = () => {
 
   // TODO: integrate post api route
   console.log("Submitting:", payload);
-  closeModal();
+  closeNewTransactionModal();
 };
-
-const { data, isLoading, isError } = useQuery({
-  queryKey: ["transactions"],
-  queryFn: fetchTransactions,
-});
-
-const rows = computed(() => data.value ?? []);
 </script>
 
 <template>
-  <Modal @closeModal="closeModal" v-if="isModalOpen">
+  <Modal
+    @closeModal="closeNewTransactionModal"
+    v-if="isNewTransactionModalOpen"
+  >
     <form @submit.prevent="submitTransaction">
-      <button @click="closeModal" class="close-btn" type="button">
+      <button @click="closeNewTransactionModal" class="close-btn" type="button">
         <Icon icon="lucide:x" width="18" height="18" />
       </button>
       <div class="form-header">
@@ -100,7 +103,7 @@ const rows = computed(() => data.value ?? []);
     <div class="header">
       <Title text="Transactions" />
       <Button
-        @click="openModal"
+        @click="openNewTransactionModal"
         icon="lucide:circle-plus"
         text="New Transaction"
       />
@@ -112,6 +115,7 @@ const rows = computed(() => data.value ?? []);
       :isError="isError"
       @edit="openFeatureComingSoonModal"
       @delete="openFeatureComingSoonModal"
+      page="transactions"
     />
   </section>
 </template>
@@ -119,7 +123,7 @@ const rows = computed(() => data.value ?? []);
 <style scoped lang="scss">
 form {
   position: relative;
-  padding: 28px;
+  padding: 18px;
   border-radius: 14px;
   background: $white;
   width: 100%;

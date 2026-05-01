@@ -8,24 +8,41 @@ export interface IMetricsResponse {
   data: IMetricsData;
 }
 
-export interface IMetricsTransformed {
+interface IMetricsTransformed {
   key: string;
   label: string;
   value: number;
   prefix: string;
 }
 
+export interface IMetrics {
+  metrics: IMetricsTransformed[];
+  isMetricsDataLoading: boolean;
+  isMetricsDataError: boolean;
+}
 
-export interface IRecentTransactions {
+interface IRecentTransaction {
   id: number | string;
   type: string;
   currency: string;
   amount: number;
 }
 
-export interface IRecentBudgets {
+export interface IRecentTransactions {
+  transactions: IRecentTransaction[];
+  isRecentTransactionsLoading: boolean;
+  isRecentTransactionsError: boolean;
+}
+
+interface IRecentBudget {
   id: number | string;
   category: string;
   spent: number;
   budget: number;
+}
+
+export interface IRecentBudgets {
+  budgets: IRecentBudget[];
+  isBudgetsDataLoading: boolean;
+  isBudgetsDataError: boolean;
 }

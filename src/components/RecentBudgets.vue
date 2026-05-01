@@ -2,11 +2,7 @@
 import { IRecentBudgets } from "../types/dashboard";
 import ProgressBar from "./ui/ProgressBar.vue";
 
-const props = defineProps<{
-  budgets: IRecentBudgets[];
-  isBudgetsDataLoading: boolean;
-  isBudgetsDataError: boolean;
-}>();
+const props = defineProps<IRecentBudgets>();
 </script>
 
 <template>
