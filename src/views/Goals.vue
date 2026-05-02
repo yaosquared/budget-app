@@ -4,26 +4,20 @@ import { useQuery } from "@tanstack/vue-query";
 import { Icon } from "@iconify/vue";
 
 import { fetchGoals } from "../api/goals";
-import { IGoalsData } from "../types/goals";
+import { IGoalFormData, IGoalsData } from "../types/goals";
 import { formatDate } from "../utils/dateTime";
 import { STATUS_OPTIONS } from "../constants/goals";
 import Title from "../components/ui/Title.vue";
 import Button from "../components/ui/Button.vue";
 import Dropdown from "../components/ui/Dropdown.vue";
 import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
-import Modal from "../components/ui/Modal.vue";
-import Input from "../components/ui/Input.vue";
+import GoalForm from "../components/modals/GoalForm.vue";
 
+const isGoalFormModalOpen = ref(false);
+const editingGoal = ref<IGoalsData | null>(null);
 const openDropdown = ref<string | null>(null);
-const isNewModalOpen = ref(false);
 const goals = ref<IGoalsData[]>([]);
 const isFeatureComingSoonModalOpen = ref(false);
-
-const formData = reactive({
-  title: "",
-  description: "",
-  dueDate: "",
-});
 
 const { data, isLoading, isError } = useQuery({
   queryKey: ["goals"],
@@ -39,19 +33,6 @@ watchEffect(() => {
   }
 });
 
-const openNewGoalModal = () => {
-  isNewModalOpen.value = true;
-};
-
-const closeNewGoalModal = () => {
-  isNewModalOpen.value = false;
-  resetForm();
-};
-
-const toggleDropdown = (id: string) => {
-  openDropdown.value = openDropdown.value === id ? null : id;
-};
-
 const isDueDate = (dueDate: string) => {
   const today = new Date();
   const due = new Date(dueDate);
@@ -63,21 +44,30 @@ const isDueDate = (dueDate: string) => {
   if (due.getTime() === today.getTime()) return "due-today";
 };
 
-const resetForm = () => {
-  formData.title = "";
-  formData.description = "";
-  formData.dueDate = "";
+const openNewGoalModal = () => {
+  editingGoal.value = null;
+  isGoalFormModalOpen.value = true;
 };
 
-const submitBudget = () => {
-  const payload = {
-    ...formData,
-    due_date: new Date(formData.dueDate).toISOString(),
-  };
-
-  // TODO: integrate post api route
+const handleFormSubmit = (payload: IGoalFormData) => {
   console.log("Submitting:", payload);
-  closeNewGoalModal();
+  if (payload.id) {
+    // call update goal api
+    openFeatureComingSoonModal();
+  } else {
+    // call create goal api
+    openFeatureComingSoonModal();
+  }
+  closeFormModal();
+};
+
+const closeFormModal = () => {
+  isGoalFormModalOpen.value = false;
+  editingGoal.value = null;
+};
+
+const toggleDropdown = (id: string) => {
+  openDropdown.value = openDropdown.value === id ? null : id;
 };
 
 const openFeatureComingSoonModal = () => {
@@ -90,44 +80,12 @@ const closeFeatureComingSoonModal = () => {
 </script>
 
 <template>
-  <Modal @closeModal="closeNewGoalModal" v-if="isNewModalOpen">
-    <form @submit.prevent="submitBudget">
-      <button @click="closeNewGoalModal" class="close-btn" type="button">
-        <Icon icon="lucide:x" width="18" height="18" />
-      </button>
-      <div class="form-header">
-        <h4>New Goal</h4>
-        <p class="subtitle">Fill in the details below</p>
-      </div>
-      <div class="form-body">
-        <div class="group">
-          <Input
-            label="Title"
-            v-model="formData.title"
-            placeholder="e.g. Groceries, Transport, Rent"
-          />
-          <Dropdown
-            type="date"
-            v-model="formData.dueDate"
-            label="Due Date"
-            placeholder="Pick a date"
-            :open="openDropdown === 'dueDate'"
-            @toggle="toggleDropdown('dueDate')"
-          />
-        </div>
-        <Input
-          label="Description"
-          type="text"
-          v-model="formData.description"
-          placeholder="e.g. Monthly grocery budget for home"
-        />
-        <div class="form-actions">
-          <!-- <button type="submit">Submit</button> -->
-          <button @click="openFeatureComingSoonModal">Submit</button>
-        </div>
-      </div>
-    </form>
-  </Modal>
+  <GoalForm
+    :isOpen="isGoalFormModalOpen"
+    :goal="editingGoal"
+    @submit="handleFormSubmit"
+    @close="closeFormModal"
+  />
   <FeatureComingSoon
     v-if="isFeatureComingSoonModalOpen"
     @closeModal="closeFeatureComingSoonModal"
@@ -185,96 +143,6 @@ const closeFeatureComingSoonModal = () => {
 </template>
 
 <style scoped lang="scss">
-form {
-  position: relative;
-  padding: 18px;
-  border-radius: 14px;
-  background: $white;
-  width: 100%;
-  max-width: 600px;
-  scrollbar-width: thin;
-  scrollbar-color: $slate-300 transparent;
-
-  .close-btn {
-    all: unset;
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    cursor: pointer;
-    display: grid;
-    place-items: center;
-    padding: 6px;
-    border-radius: 8px;
-    transition: 0.2s ease;
-
-    &:hover {
-      background: $black-opacity-06;
-      transform: scale(1.05);
-    }
-  }
-
-  .form-header {
-    margin-bottom: 24px;
-
-    h4 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 700;
-      color: $black-900;
-    }
-
-    .subtitle {
-      margin: 4px 0 0;
-      font-size: 13px;
-      color: $slate-500;
-    }
-  }
-
-  .form-body {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-
-    .group {
-      display: flex;
-      gap: 16px;
-
-      .input-group {
-        width: 50%;
-      }
-
-      .dropdown {
-        width: 50%;
-      }
-    }
-  }
-
-  .form-actions {
-    margin-top: 6px;
-
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      background: linear-gradient(135deg, $indigo-700, $indigo-600);
-      color: $white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s ease;
-
-      &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
-      }
-
-      &:active {
-        transform: translateY(0);
-      }
-    }
-  }
-}
-
 section {
   display: flex;
   flex-direction: column;

@@ -168,12 +168,14 @@ const clearTime = () => {
   emit("update:modelValue", "");
   if (props.open) emit("toggle");
 };
+
+// TODO: add validation to prevent backward date selection in range
 </script>
 
 <template>
   <div class="dropdown" :class="{ open }" ref="dropdownEl">
     <label v-if="label">{{ label }}</label>
-    <div class="box" @click="emit('toggle')">
+    <div class="box" :class="{ error: error }" @click="emit('toggle')">
       <span class="label-text" :class="{ placeholder: !modelValue }">
         {{ selectedOptionLabel }}
       </span>
@@ -190,6 +192,8 @@ const clearTime = () => {
         class="arrow"
       />
     </div>
+
+    <span v-if="error" class="error-text">{{ error }}</span>
 
     <!-- Regular select list -->
     <div v-if="open && !isDate && !isTime" class="menu">
@@ -301,9 +305,9 @@ const clearTime = () => {
   gap: 6px;
 
   label {
-    font-size: 12px;
-    font-weight: 500;
-    color: $gray-500;
+    font-size: 13px;
+    font-weight: 600;
+    color: $black-800;
   }
 
   .box {
@@ -363,6 +367,16 @@ const clearTime = () => {
         background: $gray-300;
       }
     }
+
+    &.error {
+      border-color: $red-500;
+      background: $white;
+    }
+  }
+
+  .error-text {
+    font-size: 12px;
+    color: $red-500;
   }
 
   .menu {

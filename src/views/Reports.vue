@@ -1,15 +1,18 @@
-<script setup>
-import { computed, ref } from "vue";
+<script setup lang="ts">
+import { computed, reactive, ref } from "vue";
 import { useQuery } from "@tanstack/vue-query";
 
 import { fetchReportHistory } from "../api/reports";
 import { REPORTS_COLUMNS } from "../constants/reports";
 import { formatDateTime } from "../utils/dateTime";
+import { IReportExportFormData } from "../types/reports";
 import Title from "../components/ui/Title.vue";
 import Table from "../components/ui/Table.vue";
 import Button from "../components/ui/Button.vue";
 import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
+import ReportExportForm from "../components/modals/ReportExportForm.vue";
 
+const isExportReportModalOpen = ref(false);
 const isFeatureComingSoonModalOpen = ref(false);
 
 const { data, isLoading, isError } = useQuery({
@@ -24,6 +27,21 @@ const rows = computed(() => {
   }));
 });
 
+const openExportReportModal = () => {
+  isExportReportModalOpen.value = true;
+};
+
+const handleExportSubmit = (payload: IReportExportFormData) => {
+  console.log("Exporting:", payload);
+  // TODO: integrate export api
+  openFeatureComingSoonModal();
+  closeExportModal();
+};
+
+const closeExportModal = () => {
+  isExportReportModalOpen.value = false;
+};
+
 const openFeatureComingSoonModal = () => {
   isFeatureComingSoonModalOpen.value = true;
 };
@@ -34,6 +52,11 @@ const closeFeatureComingSoonModal = () => {
 </script>
 
 <template>
+  <ReportExportForm
+    :isOpen="isExportReportModalOpen"
+    @submit="handleExportSubmit"
+    @close="closeExportModal"
+  />
   <FeatureComingSoon
     v-if="isFeatureComingSoonModalOpen"
     @closeModal="closeFeatureComingSoonModal"
@@ -44,10 +67,9 @@ const closeFeatureComingSoonModal = () => {
       <Button
         icon="lucide:download"
         text="Export"
-        @click="openFeatureComingSoonModal"
+        @click="openExportReportModal"
       />
     </div>
-
     <Table
       :columns="REPORTS_COLUMNS"
       :rows="rows"

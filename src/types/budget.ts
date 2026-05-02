@@ -13,3 +13,20 @@ export interface IBudgetData {
 export interface IBudgetsResponse {
   data: IBudgetData[];
 }
+
+export interface IBudgetForm {
+  isOpen: boolean;
+  budget: IBudgetData | null;
+}
+
+export interface IBudgetFormData {
+  id?: string;
+  category: string;
+  month: string;
+  budget: number | null;
+}
+
+export type IBudgetFormEmits = {
+  submit: [payload: IBudgetFormData];
+  close: [];
+};

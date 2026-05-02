@@ -9,3 +9,22 @@ export interface IAttendanceData {
 export interface IAttendanceResponse {
   data: IAttendanceData[];
 }
+
+export interface IAttendanceFilterForm {
+  isOpen: boolean;
+}
+
+export interface IAttendanceFilterFormData {
+  status: string[];
+  dateFrom: string;
+  dateTo: string;
+  timeInFrom: string;
+  timeInTo: string;
+  timeOutFrom: string;
+  timeOutTo: string;
+}
+
+export type IAttendanceFilterFormEmits = {
+  submit: [payload: IAttendanceFilterFormData];
+  close: [];
+};

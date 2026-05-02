@@ -23,6 +23,7 @@ export interface IDropdown {
   placeholder?: string;
   open: boolean;
   type?: "select" | "date" | "time";
+  error?: string;
 }
 
 export interface IButton {
@@ -36,6 +37,7 @@ export interface IInput {
   type?: "text" | "number" | "email" | "password";
   placeholder: string;
   error?: string;
+  disabled?: boolean;
 }
 
 type TOption = {

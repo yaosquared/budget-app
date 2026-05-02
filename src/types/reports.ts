@@ -4,10 +4,26 @@ export interface IReportsHistoryData {
   type: string;
   format: string;
   exported_by: string;
-  date_exported: Date;
+  exported_date: string;
   status: "Success" | "Error" | "Pending";
 }
 
 export interface IReportsHistoryResponse {
   data: IReportsHistoryData[];
 }
+
+export interface IReportExportForm {
+  isOpen: boolean;
+}
+
+export interface IReportExportFormData {
+  type: string;
+  format: string;
+  dateFrom: string;
+  dateTo: string;
+}
+
+export type IReportExportFormEmits = {
+  submit: [payload: IReportExportFormData];
+  close: [];
+};

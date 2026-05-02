@@ -14,3 +14,20 @@ export interface IGoalsData {
 export interface IGoalsResponse {
   data: IGoalsData[];
 }
+
+export interface IGoalForm {
+  isOpen: boolean;
+  goal: IGoalsData | null;
+}
+
+export interface IGoalFormData {
+  id?: string;
+  title: string;
+  description: string;
+  dueDate: string;
+}
+
+export type IGoalFormEmits = {
+  submit: [payload: IGoalFormData];
+  close: [];
+};

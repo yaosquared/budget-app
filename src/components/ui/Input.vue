@@ -16,8 +16,14 @@ const inputValue = computed({
 <template>
   <div class="input-group">
     <label v-if="label">{{ label }}</label>
-
-    <input :type="type" v-model="inputValue" :placeholder="placeholder" />
+    <input
+      :type="type"
+      v-model="inputValue"
+      :placeholder="placeholder"
+      :class="{ error: error, disabled: disabled }"
+      :disabled="disabled"
+    />
+    <span v-if="error" class="error-text">{{ error }}</span>
   </div>
 </template>
 
@@ -50,6 +56,13 @@ const inputValue = computed({
       border-color: $indigo-600;
       background: $white;
       box-shadow: 0 0 0 2px rgba($indigo-600, 0.15);
+    }
+
+    &.disabled {
+      background: $white;
+      background: $slate-100;
+      color: $slate-400;
+      cursor: not-allowed;
     }
 
     &.error {
