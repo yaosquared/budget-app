@@ -1,11 +1,19 @@
 <script setup lang="ts">
+import { useRouter } from "vue-router";
+
 import { IRecentTransactions } from "../types/dashboard";
 
 const props = defineProps<IRecentTransactions>();
+
+const router = useRouter();
+
+const redirectToTransactions = () => {
+  router.push("/transactions");
+};
 </script>
 
 <template>
-  <div class="card transactions">
+  <div @click="redirectToTransactions" class="card transactions">
     <p class="label">RECENT TRANSACTIONS</p>
     <div v-if="isRecentTransactionsLoading" class="scroll-area">
       <ul>

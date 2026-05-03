@@ -15,6 +15,7 @@ const emit = defineEmits<ISettingFormEmits>();
 
 const formData = reactive<ISettingFormData>({
   code: "",
+  description: "",
   value: "",
 });
 
@@ -26,6 +27,7 @@ watch(
   () => props.setting,
   (val) => {
     formData.code = val?.code ?? "";
+    formData.description = val?.description ?? "";
     formData.value = val?.value ?? "";
     errors.value = "";
   },
@@ -64,6 +66,12 @@ const handleSubmit = () => {
           label="Code"
           v-model="formData.code"
           placeholder="e.g. Income / Currency"
+          :disabled="true"
+        />
+        <Input
+          label="Description"
+          v-model="formData.description"
+          placeholder="Enter new description"
           :disabled="true"
         />
         <Input

@@ -65,7 +65,9 @@ export interface ITable {
   columns: { key: string; label: string }[];
   rows: Record<string, any>[];
   isLoading: boolean;
+  isFetching?: boolean;
   isError: boolean;
+  hasNextPage?: boolean;
   page: string;
 }
 

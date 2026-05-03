@@ -1,12 +1,20 @@
 <script setup lang="ts">
+import { useRouter } from "vue-router";
+
 import { IRecentBudgets } from "../types/dashboard";
 import ProgressBar from "./ui/ProgressBar.vue";
 
 const props = defineProps<IRecentBudgets>();
+
+const router = useRouter();
+
+const redirectToBudgets = () => {
+  router.push("/budget");
+};
 </script>
 
 <template>
-  <div class="budget">
+  <div @click="redirectToBudgets" class="budget">
     <p class="label">RECENT BUDGETS</p>
     <div v-if="isBudgetsDataLoading" class="scroll-area">
       <div class="budget-item skeleton" v-for="n in 10" :key="n"></div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { reactive, ref, watchEffect } from "vue";
-import { useQuery } from "@tanstack/vue-query";
+import { computed, ref, watch, onUnmounted } from "vue";
+import { useInfiniteQuery } from "@tanstack/vue-query";
 import { Icon } from "@iconify/vue";
 
 import { fetchGoals } from "../api/goals";
@@ -16,22 +16,47 @@ import GoalForm from "../components/modals/GoalForm.vue";
 const isGoalFormModalOpen = ref(false);
 const editingGoal = ref<IGoalsData | null>(null);
 const openDropdown = ref<string | null>(null);
-const goals = ref<IGoalsData[]>([]);
+const sentinel = ref<HTMLElement | null>(null);
+let observer: IntersectionObserver | null = null;
 const isFeatureComingSoonModalOpen = ref(false);
 
-const { data, isLoading, isError } = useQuery({
-  queryKey: ["goals"],
-  queryFn: fetchGoals,
+const { data, isLoading, isError, isFetching, hasNextPage, fetchNextPage } =
+  useInfiniteQuery({
+    queryKey: ["goals"],
+    queryFn: fetchGoals,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      return lastPage.hasNextPage ? lastPage.page + 1 : undefined;
+    },
+  });
+
+const goals = computed(
+  () =>
+    data.value?.pages.flatMap((page) =>
+      page.data.map((item) => ({
+        ...item,
+        due_date: formatDate(item.due_date),
+      })),
+    ) ?? [],
+);
+
+watch(sentinel, (el) => {
+  if (observer) observer.disconnect();
+  if (!el) return;
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && hasNextPage.value && !isFetching.value) {
+        fetchNextPage();
+      }
+    },
+    { threshold: 0.1 },
+  );
+
+  observer.observe(el);
 });
 
-watchEffect(() => {
-  if (data.value) {
-    goals.value = data.value.map((item: IGoalsData) => ({
-      ...item,
-      due_date: formatDate(item.due_date),
-    }));
-  }
-});
+onUnmounted(() => observer?.disconnect());
 
 const isDueDate = (dueDate: string) => {
   const today = new Date();
@@ -52,10 +77,8 @@ const openNewGoalModal = () => {
 const handleFormSubmit = (payload: IGoalFormData) => {
   console.log("Submitting:", payload);
   if (payload.id) {
-    // call update goal api
     openFeatureComingSoonModal();
   } else {
-    // call create goal api
     openFeatureComingSoonModal();
   }
   closeFormModal();
@@ -119,12 +142,12 @@ const closeFeatureComingSoonModal = () => {
             <div class="info">
               <h3>{{ goal.title }}</h3>
               <p>{{ goal.description }}</p>
-              <small
-                >Due:
+              <small>
+                Due:
                 <span :class="isDueDate(goal.due_date)">
                   {{ goal.due_date }}
-                </span></small
-              >
+                </span>
+              </small>
             </div>
           </div>
           <div class="actions">
@@ -137,6 +160,9 @@ const closeFeatureComingSoonModal = () => {
             />
           </div>
         </div>
+
+        <div v-if="hasNextPage" ref="sentinel" style="height: 1px" />
+        <div v-if="isFetching" class="message loading">Loading more...</div>
       </div>
     </div>
   </section>
@@ -157,6 +183,7 @@ section {
 
   .content {
     height: 100%;
+    overflow: hidden;
 
     .message {
       height: 100%;
@@ -178,6 +205,11 @@ section {
       display: flex;
       flex-direction: column;
       gap: 10px;
+      overflow-y: auto;
+      max-height: calc(100vh - 180px);
+      scrollbar-width: thin;
+      scrollbar-color: $slate-300 transparent;
+      padding-right: 4px;
 
       .card {
         display: flex;

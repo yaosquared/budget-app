@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useQuery } from "@tanstack/vue-query";
+import { useInfiniteQuery } from "@tanstack/vue-query";
 
 import { fetchTransactions } from "../api/transactions";
 import { TRANSACTION_COLUMNS } from "../constants/transactions";
@@ -15,12 +15,17 @@ const isTransactionFormModalOpen = ref(false);
 const editingTransaction = ref<ITransactionsData | null>(null); // null = "new transaction", object = "edit transaction"
 const isFeatureComingSoonModalOpen = ref(false);
 
-const { data, isLoading, isError } = useQuery({
-  queryKey: ["transactions"],
-  queryFn: fetchTransactions,
-});
+const { data, isLoading, isError, isFetching, hasNextPage, fetchNextPage } =
+  useInfiniteQuery({
+    queryKey: ["transactions"],
+    queryFn: fetchTransactions,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      return lastPage.hasNextPage ? lastPage.page + 1 : undefined;
+    },
+  });
 
-const rows = computed(() => data.value ?? []);
+const rows = computed(() => data.value?.pages.flatMap((p) => p.data) ?? []);
 
 const openNewTransactionModal = () => {
   editingTransaction.value = null;
@@ -84,9 +89,12 @@ const closeFeatureComingSoonModal = () => {
       :columns="TRANSACTION_COLUMNS"
       :rows="rows"
       :isLoading="isLoading"
+      :isFetching="isFetching"
       :isError="isError"
+      :hasNextPage="hasNextPage"
       @edit="openEditTransactionModal"
       @delete="openFeatureComingSoonModal"
+      @loadMore="fetchNextPage"
       page="transactions"
     />
   </section>

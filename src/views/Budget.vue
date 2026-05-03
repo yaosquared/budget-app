@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
-import { useQuery } from "@tanstack/vue-query";
+import { computed, ref } from "vue";
+import { useInfiniteQuery } from "@tanstack/vue-query";
 
 import { fetchBudgets } from "../api/budget";
-import { BUDGET_COLUMNS, MONTH_OPTIONS } from "../constants/budget";
+import { BUDGET_COLUMNS } from "../constants/budget";
 import Table from "../components/ui/Table.vue";
 import Title from "../components/ui/Title.vue";
 import Button from "../components/ui/Button.vue";
@@ -15,31 +15,38 @@ const isBudgetFormModalOpen = ref(false);
 const editingBudget = ref<IBudgetData | null>(null); // null = "new budget", object = "edit budget"
 const isFeatureComingSoonModalOpen = ref(false);
 
-const { data, isLoading, isError } = useQuery({
-  queryKey: ["budgets"],
-  queryFn: fetchBudgets,
-});
+const { data, isLoading, isError, isFetching, hasNextPage, fetchNextPage } =
+  useInfiniteQuery({
+    queryKey: ["budgets"],
+    queryFn: fetchBudgets,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      return lastPage.hasNextPage ? lastPage.page + 1 : undefined;
+    },
+  });
 
 const rows = computed(() => {
-  return (data.value ?? []).map((item) => {
-    const budget = Number(item.budget || 0);
-    const spent = Number(item.spent || 0);
-    const remaining = budget - spent;
+  return (data.value?.pages ?? []).flatMap((page) =>
+    page.data.map((item) => {
+      const budget = Number(item.budget || 0);
+      const spent = Number(item.spent || 0);
+      const remaining = budget - spent;
 
-    let status = "healthy";
+      let status = "healthy";
 
-    if (remaining < 0) {
-      status = "over";
-    } else if (spent / budget >= 0.8) {
-      status = "warning";
-    }
+      if (remaining < 0) {
+        status = "over";
+      } else if (spent / budget >= 0.8) {
+        status = "warning";
+      }
 
-    return {
-      ...item,
-      remaining,
-      status,
-    };
-  });
+      return {
+        ...item,
+        remaining,
+        status,
+      };
+    }),
+  );
 });
 
 const openNewBudgetModal = () => {
@@ -104,9 +111,12 @@ const closeFeatureComingSoonModal = () => {
         :columns="BUDGET_COLUMNS"
         :rows="rows"
         :isLoading="isLoading"
+        :isFetching="isFetching"
         :isError="isError"
+        :hasNextPage="hasNextPage"
         @edit="openEditBudgetModal"
         @delete="openFeatureComingSoonModal"
+        @loadMore="fetchNextPage"
         page="budget"
       />
     </div>

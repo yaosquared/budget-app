@@ -2,6 +2,7 @@ export interface ISettingsData {
   id: string;
   user_id: string;
   code?: string;
+  description?: string;
   value?: string;
   data: Record<string, ISettingValue>;
   created_at: Date;
@@ -11,6 +12,10 @@ export interface ISettingsData {
 
 export interface ISettingsResponse {
   data: ISettingsData[];
+  total: number;
+  page: number;
+  limit: number;
+  hasNextPage: boolean;
 }
 
 export interface ISettingForm {
@@ -21,6 +26,7 @@ export interface ISettingForm {
 export interface ISettingFormData {
   id?: string;
   code: string;
+  description: string;
   value: string;
 }
 

@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch, onUnmounted } from "vue";
 
+import { ITable } from "../../types/ui";
 import { formatDateTime } from "../../utils/dateTime";
 import ConfirmationModal from "../modals/ConfirmationModal.vue";
-import { ITable } from "../../types/ui";
 
 const props = defineProps<ITable>();
 
 const emit = defineEmits({
   edit: (row) => true,
   delete: (row) => true,
+  loadMore: () => true,
 });
 
 const selectedRow = ref<any>(null);
@@ -31,6 +32,27 @@ const handleDeleteRow = () => {
   }
   closeDeleteConfirmationModal();
 };
+
+const sentinel = ref<HTMLElement | null>(null);
+let observer: IntersectionObserver | null = null;
+
+watch(sentinel, (el) => {
+  if (observer) observer.disconnect();
+  if (!el) return;
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && props.hasNextPage && !props.isFetching) {
+        emit("loadMore");
+      }
+    },
+    { threshold: 0.1 },
+  );
+
+  observer.observe(el);
+});
+
+onUnmounted(() => observer?.disconnect());
 </script>
 
 <template>
@@ -92,6 +114,18 @@ const handleDeleteRow = () => {
             </span>
           </td>
         </tr>
+
+        <tr v-if="hasNextPage">
+          <td :colspan="columns.length">
+            <div ref="sentinel" style="height: 1px" />
+            <div
+              v-if="isFetching"
+              style="text-align: center; padding: 12px; color: gray"
+            >
+              Loading more data...
+            </div>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -147,7 +181,7 @@ const handleDeleteRow = () => {
     tbody {
       display: block;
       overflow-y: auto;
-      height: 100%;
+      max-height: calc(100vh - 220px);
       width: 100%;
       scrollbar-width: thin;
       scrollbar-color: $slate-300 transparent;
@@ -178,7 +212,8 @@ const handleDeleteRow = () => {
 
             &.over,
             &.absent,
-            &.Error {
+            &.Error,
+            &.Failed {
               color: $red-600;
             }
 

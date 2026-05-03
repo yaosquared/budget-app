@@ -10,6 +10,10 @@ export interface IReportsHistoryData {
 
 export interface IReportsHistoryResponse {
   data: IReportsHistoryData[];
+  total: number;
+  page: number;
+  limit: number;
+  hasNextPage: boolean;
 }
 
 export interface IReportExportForm {

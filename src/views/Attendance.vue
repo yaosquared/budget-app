@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
-import { useQuery } from "@tanstack/vue-query";
+import { computed, ref } from "vue";
+import { useInfiniteQuery } from "@tanstack/vue-query";
 
 import { fetchAttendance } from "../api/attendance";
 import { formatDate, formatTime } from "../utils/dateTime";
 import { ATTENDANCE_COLUMNS } from "../constants/attendance";
-import { IAttendanceFilterFormData } from "../types/attendance";
+import {
+  IAttendanceData,
+  IAttendanceFilterFormData,
+} from "../types/attendance";
 import Title from "../components/ui/Title.vue";
 import Table from "../components/ui/Table.vue";
 import Button from "../components/ui/Button.vue";
@@ -17,18 +20,25 @@ const isFilterAttendanceModalOpen = ref(false);
 const isFeatureComingSoonModalOpen = ref(false);
 const isConfirmationModalOpen = ref(false);
 
-const { data, isLoading, isError } = useQuery({
-  queryKey: ["attendance"],
-  queryFn: fetchAttendance,
-});
+const { data, isLoading, isError, isFetching, hasNextPage, fetchNextPage } =
+  useInfiniteQuery({
+    queryKey: ["attendance"],
+    queryFn: fetchAttendance,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      return lastPage.hasNextPage ? lastPage.page + 1 : undefined;
+    },
+  });
 
 const rows = computed(() => {
-  return (data.value ?? []).map((item: any) => ({
-    ...item,
-    attendance_date: formatDate(item.attendance_date),
-    time_in: formatTime(item.time_in),
-    time_out: formatTime(item.time_out),
-  }));
+  return (data.value?.pages ?? []).flatMap((page) =>
+    page.data.map((item: IAttendanceData) => ({
+      ...item,
+      attendance_date: formatDate(item.attendance_date),
+      time_in: formatTime(item.time_in),
+      time_out: formatTime(item.time_out),
+    })),
+  );
 });
 
 const openTimeInModal = () => {
@@ -97,7 +107,10 @@ const closeFilterModal = () => {
       :columns="ATTENDANCE_COLUMNS"
       :rows="rows"
       :isLoading="isLoading"
+      :isFetching="isFetching"
       :isError="isError"
+      :hasNextPage="hasNextPage"
+      @loadMore="fetchNextPage"
       page="attendance"
     />
   </section>

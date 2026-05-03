@@ -12,6 +12,10 @@ export interface IBudgetData {
 
 export interface IBudgetsResponse {
   data: IBudgetData[];
+  total: number;
+  page: number;
+  limit: number;
+  hasNextPage: boolean;
 }
 
 export interface IBudgetForm {

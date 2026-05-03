@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useQuery } from "@tanstack/vue-query";
+import { useInfiniteQuery } from "@tanstack/vue-query";
 
 import { fetchSettings } from "../api/settings";
 import { capitalize } from "../utils/string";
@@ -43,20 +43,29 @@ const closeFeatureComingSoonModal = () => {
   isFeatureComingSoonModalOpen.value = false;
 };
 
-const { data, isLoading, isError } = useQuery({
-  queryKey: ["settings"],
-  queryFn: fetchSettings,
-});
+const { data, isLoading, isError, isFetching, hasNextPage, fetchNextPage } =
+  useInfiniteQuery({
+    queryKey: ["settings"],
+    queryFn: fetchSettings,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      return lastPage.hasNextPage ? lastPage.page + 1 : undefined;
+    },
+  });
 
 const rows = computed(() => {
-  return (data.value ?? []).flatMap((item) =>
-    Object.entries(item.data).map(([key, obj]) => ({
-      code: capitalize(key),
-      description: obj.description,
-      value: capitalize(String(obj.value)),
-      updated_at: item.updated_at,
-      modified_by: item.modified_by,
-    })),
+  return (data.value?.pages ?? []).flatMap((page) =>
+    page.data.flatMap((item: ISettingsData) =>
+      Object.entries(item.data).map(([key, obj]: [string, any]) => ({
+        id: item.id,
+        user_id: item.user_id,
+        code: capitalize(key),
+        description: obj.description,
+        value: capitalize(String(obj.value)),
+        updated_at: item.updated_at,
+        modified_by: item.modified_by,
+      })),
+    ),
   );
 });
 </script>
@@ -80,8 +89,11 @@ const rows = computed(() => {
       :columns="SETTINGS_COLUMNS"
       :rows="rows"
       :isLoading="isLoading"
+      :isFetching="isFetching"
       :isError="isError"
+      :hasNextPage="hasNextPage"
       @edit="openSettingModal"
+      @loadMore="fetchNextPage"
       page="settings"
     />
   </section>

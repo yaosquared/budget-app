@@ -8,6 +8,10 @@ export interface ITransactionsData {
 
 export interface ITransactionsResponse {
   data: ITransactionsData[];
+  total: number;
+  page: number;
+  limit: number;
+  hasNextPage: boolean;
 }
 
 export interface ITransactionForm {

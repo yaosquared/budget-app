@@ -13,6 +13,10 @@ export interface IGoalsData {
 
 export interface IGoalsResponse {
   data: IGoalsData[];
+  total: number;
+  page: number;
+  limit: number;
+  hasNextPage: boolean;
 }
 
 export interface IGoalForm {
