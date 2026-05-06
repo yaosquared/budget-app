@@ -63,7 +63,6 @@ const rows = computed(() => {
         description: obj.description,
         value: capitalize(String(obj.value)),
         updated_at: item.updated_at,
-        modified_by: item.modified_by,
       })),
     ),
   );

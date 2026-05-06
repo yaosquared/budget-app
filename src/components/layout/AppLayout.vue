@@ -3,7 +3,9 @@ import { ref } from "vue";
 import Sidebar from "../Sidebar.vue";
 import Header from "../Header.vue";
 
-const isCollapsed = ref<boolean>(false);
+const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
+
+const isCollapsed = ref<boolean>(isMobile());
 
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value;

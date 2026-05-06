@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from "vue";
+import { computed, ref, watch, onUnmounted, capitalize } from "vue";
 import { useInfiniteQuery } from "@tanstack/vue-query";
 import { Icon } from "@iconify/vue";
 
@@ -140,8 +140,8 @@ const closeFeatureComingSoonModal = () => {
               height="18"
             />
             <div class="info">
-              <h3>{{ goal.title }}</h3>
-              <p>{{ goal.description }}</p>
+              <h3>{{ capitalize(goal.title) }}</h3>
+              <p>{{ capitalize(goal.description) }}</p>
               <small>
                 Due:
                 <span :class="isDueDate(goal.due_date)">
@@ -150,7 +150,7 @@ const closeFeatureComingSoonModal = () => {
               </small>
             </div>
           </div>
-          <div class="actions">
+          <div class="right">
             <Dropdown
               v-model="goal.status"
               :options="STATUS_OPTIONS"
@@ -220,6 +220,10 @@ section {
         border-radius: 10px;
         background: $white;
         transition: 0.2s ease;
+        width: 100%;
+        gap: 16px;
+
+        flex-direction: column;
 
         &:hover {
           box-shadow: 0 4px 12px $black-opacity-06;
@@ -234,6 +238,8 @@ section {
           display: flex;
           align-items: center;
           gap: 15px;
+          min-width: 0;
+          width: 100%;
 
           .drag-handle {
             display: flex;
@@ -247,6 +253,8 @@ section {
             display: flex;
             flex-direction: column;
             gap: 4px;
+            min-width: 0;
+            width: 100%;
 
             h3 {
               margin: 0;
@@ -259,10 +267,15 @@ section {
               margin: 0;
               font-size: 13px;
               color: $slate-500;
+              width: 100%;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
             }
 
             small {
               font-size: 12px;
+              font-weight: 500;
               color: $slate-400;
 
               .overdue {
@@ -270,16 +283,16 @@ section {
               }
 
               .due-today {
-                color: $indigo-600;
+                color: $yellow-500;
               }
             }
           }
         }
 
-        .actions {
-          min-width: 160px;
+        .right {
           display: flex;
-          justify-content: flex-end;
+          justify-content: center;
+          width: 100%;
         }
 
         &.skeleton {
@@ -300,6 +313,27 @@ section {
         text-align: center;
         color: $slate-500;
         padding: 20px;
+      }
+    }
+  }
+}
+
+@media (min-width: 426px) {
+  section {
+    .content {
+      .list {
+        .card {
+          flex-direction: row;
+
+          .left {
+            width: 50%;
+          }
+
+          .right {
+            justify-content: flex-end;
+            width: 50%;
+          }
+        }
       }
     }
   }

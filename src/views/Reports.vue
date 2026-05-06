@@ -29,7 +29,7 @@ const rows = computed(() => {
   return (data.value?.pages ?? []).flatMap((page) =>
     page.data.map((item: IReportsHistoryData) => ({
       ...item,
-      exported_date: formatDateTime(item.exported_date),
+      exported_date: formatDateTime(item.created_at),
     })),
   );
 });

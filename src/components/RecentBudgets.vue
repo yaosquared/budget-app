@@ -2,6 +2,7 @@
 import { useRouter } from "vue-router";
 
 import { IRecentBudgets } from "../types/dashboard";
+import { capitalize } from "vue";
 import ProgressBar from "./ui/ProgressBar.vue";
 
 const props = defineProps<IRecentBudgets>();
@@ -24,7 +25,7 @@ const redirectToBudgets = () => {
     </div>
     <div v-else class="scroll-area">
       <div class="budget-item" v-for="item in budgets" :key="item.id">
-        <span>{{ item.category }}</span>
+        <span>{{ capitalize(item.category) }}</span>
         <ProgressBar
           :value="
             Math.min((Number(item.spent) / Number(item.budget)) * 100, 100)
@@ -55,6 +56,7 @@ const redirectToBudgets = () => {
 
   .label {
     font-size: 12px;
+    font-weight: 600;
     color: $slate-400;
     margin-bottom: 10px;
   }

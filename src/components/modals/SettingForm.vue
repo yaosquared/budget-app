@@ -67,6 +67,7 @@ const handleSubmit = () => {
           v-model="formData.code"
           placeholder="e.g. Income / Currency"
           :disabled="true"
+          :uppercase="true"
         />
         <Input
           label="Description"

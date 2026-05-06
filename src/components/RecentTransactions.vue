@@ -2,6 +2,7 @@
 import { useRouter } from "vue-router";
 
 import { IRecentTransactions } from "../types/dashboard";
+import { capitalize } from "vue";
 
 const props = defineProps<IRecentTransactions>();
 
@@ -27,12 +28,11 @@ const redirectToTransactions = () => {
       <ul>
         <li v-for="item in transactions" :key="item.id">
           <div class="left">
-            <span class="name">{{ item.type }}</span>
+            <span class="name">{{ capitalize(item.type) }}</span>
           </div>
           <div class="right">
             <small class="budget">
-              {{ item.currency }}
-              {{ Number(item.amount).toLocaleString() }}
+              ₱{{ Number(item.amount).toLocaleString() }}
             </small>
           </div>
         </li>
@@ -54,6 +54,7 @@ const redirectToTransactions = () => {
 
   .label {
     font-size: 12px;
+    font-weight: 600;
     color: $slate-400;
     margin-bottom: 10px;
   }
@@ -90,10 +91,15 @@ const redirectToTransactions = () => {
           transform: translateX(2px);
         }
 
-        span:first-child {
+        .name {
           font-size: 14px;
           font-weight: 500;
           color: $black-950;
+        }
+
+        .budget {
+          font-weight: 500;
+          color: $gray-600;
         }
 
         &.skeleton {

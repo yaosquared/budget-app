@@ -20,7 +20,11 @@ const inputValue = computed({
       :type="type"
       v-model="inputValue"
       :placeholder="placeholder"
-      :class="{ error: error, disabled: disabled }"
+      :class="{
+        error: error,
+        disabled: disabled,
+        uppercase: uppercase,
+      }"
       :disabled="disabled"
     />
     <span v-if="error" class="error-text">{{ error }}</span>
@@ -68,6 +72,10 @@ const inputValue = computed({
     &.error {
       border-color: $red-500;
       background: $white;
+    }
+
+    &.uppercase {
+      text-transform: uppercase;
     }
   }
 

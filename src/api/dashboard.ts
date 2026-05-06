@@ -7,7 +7,7 @@ export const fetchMetrics = async () => {
   const { data } = await axios.post<IMetricsResponse>(
     `${import.meta.env.VITE_API_URL}/api/dashboard/metrics`,
     {
-      user_id: "24f98e8a-2938-40b8-bf82-a0e5fa01a962",
+      user_id: "caab2291-99ba-41a2-ad76-107c3405e6e5",
     },
   );
 
@@ -15,15 +15,23 @@ export const fetchMetrics = async () => {
 };
 
 export const fetchRecentBudgets = async () => {
-  const { data } = await axios.get<IBudgetsResponse>(
+  const { data } = await axios.post<IBudgetsResponse>(
     `${import.meta.env.VITE_API_URL}/api/budgets/recent`,
+    {
+      user_id: "caab2291-99ba-41a2-ad76-107c3405e6e5",
+    },
   );
+
   return data.data;
 };
 
 export const fetchRecentTransactions = async () => {
-  const { data } = await axios.get<ITransactionsResponse>(
+  const { data } = await axios.post<ITransactionsResponse>(
     `${import.meta.env.VITE_API_URL}/api/transactions/recent`,
+    {
+      user_id: "caab2291-99ba-41a2-ad76-107c3405e6e5",
+    },
   );
+
   return data.data;
 };

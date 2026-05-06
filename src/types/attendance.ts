@@ -4,7 +4,7 @@ export interface IAttendanceData {
   status: "present" | "late" | "absent";
   time_in: string;
   time_out: string;
-  attendance_date: string;
+  created_at: string;
 }
 
 export interface IAttendanceResponse {

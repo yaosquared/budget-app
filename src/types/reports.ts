@@ -3,9 +3,9 @@ export interface IReportsHistoryData {
   user_id: string;
   type: string;
   format: string;
-  exported_by: string;
-  exported_date: string;
   status: "Success" | "Error" | "Pending";
+  exported_by: string;
+  created_at: string;
 }
 
 export interface IReportsHistoryResponse {

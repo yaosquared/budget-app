@@ -38,6 +38,7 @@ export interface IInput {
   placeholder: string;
   error?: string;
   disabled?: boolean;
+  uppercase?: boolean;
 }
 
 type TOption = {

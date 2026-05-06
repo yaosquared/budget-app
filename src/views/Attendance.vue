@@ -34,7 +34,7 @@ const rows = computed(() => {
   return (data.value?.pages ?? []).flatMap((page) =>
     page.data.map((item: IAttendanceData) => ({
       ...item,
-      attendance_date: formatDate(item.attendance_date),
+      attendance_date: formatDate(item.created_at),
       time_in: formatTime(item.time_in),
       time_out: formatTime(item.time_out),
     })),

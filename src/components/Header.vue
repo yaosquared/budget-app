@@ -72,7 +72,6 @@ header {
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 36px;
       font-size: 20px;
     }
 

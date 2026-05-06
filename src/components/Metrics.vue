@@ -48,6 +48,7 @@ const props = defineProps<IMetrics>();
 
     .label {
       font-size: 11px;
+      font-weight: 600;
       color: $slate-400;
       text-transform: uppercase;
       letter-spacing: 0.8px;

@@ -9,7 +9,7 @@ const props = defineProps<IButton>();
 <template>
   <button>
     <Icon :icon="icon" width="18" height="18" />
-    <span>{{ text }}</span>
+    <span class="btn-text">{{ text }}</span>
   </button>
 </template>
 
@@ -52,6 +52,16 @@ button {
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .btn-text {
+    display: none;
+  }
+
+  button {
+    padding: 10px;
   }
 }
 </style>

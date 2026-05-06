@@ -7,7 +7,6 @@ export interface ISettingsData {
   data: Record<string, ISettingValue>;
   created_at: Date;
   updated_at: Date;
-  modified_by: string;
 }
 
 export interface ISettingsResponse {

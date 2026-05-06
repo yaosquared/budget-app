@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from "vue";
+import { ref, watch, onUnmounted, capitalize } from "vue";
 
 import { ITable } from "../../types/ui";
-import { formatDateTime } from "../../utils/dateTime";
+import { formatDateTime, formatMonth } from "../../utils/dateTime";
 import ConfirmationModal from "../modals/ConfirmationModal.vue";
+import { formatLabel } from "../../utils/string";
 
 const props = defineProps<ITable>();
 
@@ -80,13 +81,29 @@ onUnmounted(() => observer?.disconnect());
         <tr v-else-if="isError" class="message error">
           <td :colspan="columns.length">Error fetching data</td>
         </tr>
-        <tr v-else-if="!rows || rows.length === 0" class="message">
+        <tr v-else-if="!rows || rows.length === 0" class="message empty">
           <td :colspan="columns.length">No data available</td>
         </tr>
         <tr v-else v-for="row in rows" :key="row.id">
           <td v-for="col in columns" :key="col.key">
-            <span v-if="col.key === 'amount'">
-              {{ row.currency }} {{ row.amount }}
+            <span v-if="['category', 'exported_by'].includes(col.key)">
+              {{ capitalize(row[col.key]) }}
+            </span>
+            <span v-else-if="col.key === 'type'">
+              {{ formatLabel(row[col.key]) }}
+            </span>
+            <span v-else-if="col.key === 'code'" class="code">
+              {{ row[col.key] }}
+            </span>
+            <span v-else-if="col.key === 'format'" class="format">{{
+              row[col.key]
+            }}</span>
+            <span
+              v-else-if="
+                ['amount', 'budget', 'spent', 'remaining'].includes(col.key)
+              "
+            >
+              ₱{{ Number(row[col.key] || 0).toLocaleString() }}
             </span>
             <span
               v-else-if="col.key === 'status'"
@@ -94,9 +111,10 @@ onUnmounted(() => observer?.disconnect());
             >
               {{ row.status }}
             </span>
-            <span
-              v-else-if="col.key === 'created_at' || col.key === 'updated_at'"
-            >
+            <span v-else-if="col.key === 'month'">{{
+              formatMonth(row.month)
+            }}</span>
+            <span v-else-if="['created_at', 'updated_at'].includes(col.key)">
               {{ formatDateTime(row[col.key]) }}
             </span>
             <span v-else-if="col.key === 'actions'" class="actions">
@@ -133,13 +151,13 @@ onUnmounted(() => observer?.disconnect());
 
 <style scoped lang="scss">
 .table-wrapper {
-  overflow: hidden;
-  height: 100%;
+  overflow-x: auto;
 
   table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
+    min-width: 800px;
 
     &.empty {
       height: 100%;
@@ -151,7 +169,7 @@ onUnmounted(() => observer?.disconnect());
       text-align: left;
       border-bottom: 1px solid $gray-200;
       background: $white;
-      white-space: nowrap;
+      // white-space: nowrap;
     }
 
     thead {
@@ -181,6 +199,7 @@ onUnmounted(() => observer?.disconnect());
     tbody {
       display: block;
       overflow-y: auto;
+      height: 100%;
       max-height: calc(100vh - 220px);
       width: 100%;
       scrollbar-width: thin;
@@ -193,6 +212,11 @@ onUnmounted(() => observer?.disconnect());
 
         td {
           span {
+            &.code,
+            &.format {
+              text-transform: uppercase;
+            }
+
             &.status {
               font-weight: 600;
               text-transform: capitalize;
@@ -200,20 +224,20 @@ onUnmounted(() => observer?.disconnect());
 
             &.healthy,
             &.present,
-            &.Success {
+            &.success {
               color: $green-500;
             }
 
             &.warning,
             &.late,
-            &.Pending {
+            &.pending {
               color: $yellow-500;
             }
 
             &.over,
             &.absent,
-            &.Error,
-            &.Failed {
+            &.error,
+            &.failed {
               color: $red-600;
             }
 
@@ -259,7 +283,9 @@ onUnmounted(() => observer?.disconnect());
 
         &.message {
           td {
+            height: 100%;
             text-align: center;
+            font-weight: 500;
           }
 
           &.loading {
