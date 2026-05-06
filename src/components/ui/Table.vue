@@ -82,7 +82,9 @@ onUnmounted(() => observer?.disconnect());
           <td :colspan="columns.length">Error fetching data</td>
         </tr>
         <tr v-else-if="!rows || rows.length === 0" class="message empty">
-          <td :colspan="columns.length">No data available</td>
+          <td :colspan="columns.length">
+            <div class="empty-state">No data available</div>
+          </td>
         </tr>
         <tr v-else v-for="row in rows" :key="row.id">
           <td v-for="col in columns" :key="col.key">
@@ -169,7 +171,6 @@ onUnmounted(() => observer?.disconnect());
       text-align: left;
       border-bottom: 1px solid $gray-200;
       background: $white;
-      // white-space: nowrap;
     }
 
     thead {
@@ -199,7 +200,7 @@ onUnmounted(() => observer?.disconnect());
     tbody {
       display: block;
       overflow-y: auto;
-      height: 100%;
+      // height: 100%;
       max-height: calc(100vh - 220px);
       width: 100%;
       scrollbar-width: thin;
@@ -304,6 +305,15 @@ onUnmounted(() => observer?.disconnect());
                 background-size: 200% 100%;
                 animation: shimmer 1.5s infinite;
               }
+            }
+          }
+
+          &.empty {
+            td {
+              height: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
             }
           }
 
