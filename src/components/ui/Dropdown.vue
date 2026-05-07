@@ -90,6 +90,8 @@ watch(
   () => props.open,
   (isOpen) => {
     if (isOpen) {
+      addScrollListener();
+
       if (isDate.value && selectedDate.value) {
         const date = selectedDate.value;
         viewYear.value = date.getFullYear();
@@ -136,6 +138,34 @@ const calendarDays = computed(() =>
   getCalendarDays(viewYear.value, viewMonth.value),
 );
 
+const minDate = computed(() =>
+  props.minDate ? parseISODate(props.minDate) : null,
+);
+const maxDate = computed(() =>
+  props.maxDate ? parseISODate(props.maxDate) : null,
+);
+
+const isDisabled = (d: Date): boolean => {
+  const norm = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  if (minDate.value) {
+    const min = new Date(
+      minDate.value.getFullYear(),
+      minDate.value.getMonth(),
+      minDate.value.getDate(),
+    );
+    if (norm < min) return true;
+  }
+  if (maxDate.value) {
+    const max = new Date(
+      maxDate.value.getFullYear(),
+      maxDate.value.getMonth(),
+      maxDate.value.getDate(),
+    );
+    if (norm > max) return true;
+  }
+  return false;
+};
+
 const prevMonth = () => {
   if (viewMonth.value === 0) {
     viewMonth.value = 11;
@@ -151,6 +181,7 @@ const nextMonth = () => {
 };
 
 const selectDay = (date: Date) => {
+  if (isDisabled(date)) return;
   emit("update:modelValue", toISODate(date));
   emit("toggle");
 };
@@ -160,7 +191,9 @@ const clearDate = () => {
   if (props.open) emit("toggle");
 };
 
-const selectToday = () => selectDay(today);
+const selectToday = () => {
+  if (!isDisabled(today)) selectDay(today);
+};
 
 const isSelected = (d: Date) =>
   selectedDate.value?.toDateString() === d.toDateString();
@@ -215,8 +248,6 @@ const clearTime = () => {
   emit("update:modelValue", "");
   if (props.open) emit("toggle");
 };
-
-// TODO: add validation to prevent backward date selection in range
 </script>
 
 <template>
@@ -292,14 +323,22 @@ const clearTime = () => {
               'out-month': !cell.inMonth,
               selected: isSelected(cell.date),
               today: isToday(cell.date) && !isSelected(cell.date),
+              disabled: isDisabled(cell.date),
             }"
+            :disabled="isDisabled(cell.date)"
             @click="selectDay(cell.date)"
           >
             {{ cell.date.getDate() }}
           </button>
         </div>
         <div class="cal-footer">
-          <button type="button" class="footer-btn accent" @click="selectToday">
+          <button
+            type="button"
+            class="footer-btn accent"
+            :class="{ disabled: isDisabled(today) }"
+            :disabled="isDisabled(today)"
+            @click="selectToday"
+          >
             Today
           </button>
         </div>
@@ -532,7 +571,7 @@ const clearTime = () => {
         background-color 0.1s,
         color 0.1s;
 
-      &:hover:not(.selected) {
+      &:hover:not(.selected):not(.disabled) {
         background: $blue-50;
         color: $blue-600;
       }
@@ -551,6 +590,13 @@ const clearTime = () => {
         background: $blue-600;
         color: $white;
         font-weight: 700;
+      }
+
+      // Disabled: not selectable dates outside min/max range
+      &.disabled {
+        color: $gray-300;
+        cursor: not-allowed;
+        pointer-events: none;
       }
     }
   }
@@ -584,6 +630,12 @@ const clearTime = () => {
         &:hover {
           background: $blue-50;
         }
+      }
+
+      &.disabled {
+        color: $gray-300;
+        cursor: not-allowed;
+        pointer-events: none;
       }
     }
   }
@@ -671,29 +723,6 @@ const clearTime = () => {
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.04em;
-  }
-
-  .time-footer {
-    border-top: 1px solid $slate-100;
-    padding-top: 10px;
-    display: flex;
-    justify-content: flex-end;
-
-    .confirm-btn {
-      all: unset;
-      font-size: 12px;
-      font-weight: 600;
-      color: $white;
-      background: $blue-600;
-      cursor: pointer;
-      padding: 5px 14px;
-      border-radius: 6px;
-      transition: background-color 0.15s;
-
-      &:hover {
-        background: $blue-700;
-      }
-    }
   }
 }
 </style>

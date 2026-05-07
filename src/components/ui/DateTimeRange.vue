@@ -40,6 +40,7 @@ const toggleTo = () => {
         :placeholder="fromLabel"
         :open="fromOpen"
         :model-value="fromValue"
+        :maxDate="toValue"
         @update:model-value="emit('update:fromValue', $event)"
         @toggle="toggleFrom"
       />
@@ -55,6 +56,7 @@ const toggleTo = () => {
         :placeholder="toLabel"
         :open="toOpen"
         :model-value="toValue"
+        :minDate="fromValue"
         @update:model-value="emit('update:toValue', $event)"
         @toggle="toggleTo"
       />

@@ -24,6 +24,8 @@ export interface IDropdown {
   open: boolean;
   type?: "select" | "date" | "time";
   error?: string;
+  minDate?: string;
+  maxDate?: string;
 }
 
 export interface IButton {
