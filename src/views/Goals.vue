@@ -6,7 +6,7 @@ import { Icon } from "@iconify/vue";
 import { fetchGoals } from "../api/goals";
 import { IGoalFormData, IGoalsData } from "../types/goals";
 import { formatDate } from "../utils/dateTime";
-import { STATUS_OPTIONS } from "../constants/goals";
+import { STATUS_OPTIONS, TAB_BTN_PROPERTIES } from "../constants/goals";
 import Title from "../components/ui/Title.vue";
 import Button from "../components/ui/Button.vue";
 import Dropdown from "../components/ui/Dropdown.vue";
@@ -19,10 +19,15 @@ const openDropdown = ref<string | null>(null);
 const sentinel = ref<HTMLElement | null>(null);
 let observer: IntersectionObserver | null = null;
 const isFeatureComingSoonModalOpen = ref(false);
+const activeTab = ref<"pending" | "completed">("pending");
+
+const statusFilter = computed(() =>
+  activeTab.value === "completed" ? ["completed"] : ["pending", "in_progress"],
+);
 
 const { data, isLoading, isError, isFetching, hasNextPage, fetchNextPage } =
   useInfiniteQuery({
-    queryKey: ["goals"],
+    queryKey: ["goals", statusFilter],
     queryFn: fetchGoals,
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -123,6 +128,17 @@ const closeFeatureComingSoonModal = () => {
       />
     </div>
     <div class="content">
+      <div class="tab-group">
+        <button
+          v-for="tab in TAB_BTN_PROPERTIES"
+          :key="tab.key"
+          :class="['tab-btn', activeTab === tab.key ? 'active' : '']"
+          @click="activeTab = tab.key"
+        >
+          <Icon :icon="tab.icon" width="14" height="14" />
+          {{ tab.label }}
+        </button>
+      </div>
       <div v-if="isLoading" class="list">
         <div v-for="n in 10" :key="n" class="card skeleton"></div>
       </div>
@@ -184,6 +200,45 @@ section {
   .content {
     height: 100%;
     overflow: hidden;
+
+    .tab-group {
+      display: inline-flex;
+      background: $slate-100;
+      border-radius: 10px;
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 12px;
+
+      .tab-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 16px;
+        border: none;
+        border-radius: 7px;
+        font-size: 13px;
+        font-weight: 600;
+        color: $slate-400;
+        background: transparent;
+        cursor: pointer;
+        transition:
+          color 0.18s ease,
+          background-color 0.18s ease,
+          box-shadow 0.18s ease;
+        white-space: nowrap;
+
+        &:hover:not(.active) {
+          color: $slate-600;
+          background-color: $slate-200;
+        }
+
+        &.active {
+          background: $white;
+          color: $black-900;
+          box-shadow: 0 1px 4px $black-opacity-06;
+        }
+      }
+    }
 
     .message {
       height: 100%;

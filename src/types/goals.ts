@@ -35,3 +35,9 @@ export type IGoalFormEmits = {
   submit: [payload: IGoalFormData];
   close: [];
 };
+
+export interface ITabBtn {
+  key: "pending" | "completed";
+  label: string;
+  icon: string;
+}

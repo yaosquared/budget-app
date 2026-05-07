@@ -200,7 +200,6 @@ onUnmounted(() => observer?.disconnect());
     tbody {
       display: block;
       overflow-y: auto;
-      // height: 100%;
       max-height: calc(100vh - 220px);
       width: 100%;
       scrollbar-width: thin;
@@ -283,9 +282,14 @@ onUnmounted(() => observer?.disconnect());
         }
 
         &.message {
+          display: table;
+          width: 100%;
+          table-layout: fixed;
+
           td {
-            height: 100%;
+            height: calc(100vh - 220px);
             text-align: center;
+            vertical-align: middle;
             font-weight: 500;
           }
 
@@ -310,10 +314,10 @@ onUnmounted(() => observer?.disconnect());
 
           &.empty {
             td {
-              height: 100%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
+              height: calc(100vh - 220px);
+              text-align: center;
+              vertical-align: middle;
+              font-weight: 500;
             }
           }
 
