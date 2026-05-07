@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, nextTick, onUnmounted } from "vue";
 import { onClickOutside } from "@vueuse/core";
 
 import { DAYS, HOURS, MINUTES, MONTHS, PERIODS } from "../../constants/ui";
@@ -22,11 +22,13 @@ const emit = defineEmits<{
 const today = getStartOfToday();
 
 const dropdownEl = ref<HTMLElement | null>(null);
+const menuEl = ref<HTMLElement | null>(null);
 const viewYear = ref(today.getFullYear());
 const viewMonth = ref(today.getMonth());
 const selectedHour = ref("12");
 const selectedMinute = ref("00");
 const selectedPeriod = ref("AM");
+const menuStyle = ref<Record<string, string>>({});
 
 const isDate = computed(() => props.type === "date");
 const isTime = computed(() => props.type === "time");
@@ -39,6 +41,80 @@ const selectedOptionLabel = computed(() => {
     props.placeholder
   );
 });
+
+const handleScroll = (e: Event) => {
+  if (!props.open) return;
+  const target = e.target as Node;
+  if (menuEl.value?.contains(target)) return;
+  emit("toggle");
+};
+
+const addScrollListener = () => {
+  window.addEventListener("scroll", handleScroll, true);
+};
+
+const removeScrollListener = () => {
+  window.removeEventListener("scroll", handleScroll, true);
+};
+
+onUnmounted(removeScrollListener);
+
+const applyMenuPosition = (rect: DOMRect) => {
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const menuHeight = menuEl.value?.offsetHeight ?? 300;
+  const openUpward = spaceBelow < menuHeight + 8 && rect.top > menuHeight + 8;
+
+  menuStyle.value = {
+    position: "fixed",
+    left: `${rect.left}px`,
+    width: `${rect.width}px`,
+    zIndex: "9999",
+    ...(openUpward
+      ? { bottom: `${window.innerHeight - rect.top + 4}px`, top: "auto" }
+      : { top: `${rect.bottom + 4}px`, bottom: "auto" }),
+  };
+};
+
+const handleToggle = () => {
+  const box = dropdownEl.value?.querySelector(".box") as HTMLElement | null;
+  const rect = box?.getBoundingClientRect();
+
+  emit("toggle");
+
+  if (!props.open && rect) {
+    nextTick(() => applyMenuPosition(rect));
+  }
+};
+
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      if (isDate.value && selectedDate.value) {
+        const date = selectedDate.value;
+        viewYear.value = date.getFullYear();
+        viewMonth.value = date.getMonth();
+      }
+
+      if (isTime.value) {
+        syncTimeColumns();
+      }
+    } else {
+      removeScrollListener();
+    }
+  },
+);
+
+const handleOutsideClick = (e: MouseEvent) => {
+  if (!props.open) return;
+  const clickedInsideMenu = menuEl.value?.contains(e.target as Node);
+  const clickedInsideDropdown = dropdownEl.value?.contains(e.target as Node);
+  if (!clickedInsideMenu && !clickedInsideDropdown) {
+    emit("toggle");
+  }
+};
+
+onClickOutside(dropdownEl, handleOutsideClick);
 
 const selectOptionValue = (value: string) => {
   emit("update:modelValue", value);
@@ -89,35 +165,6 @@ const selectToday = () => selectDay(today);
 const isSelected = (d: Date) =>
   selectedDate.value?.toDateString() === d.toDateString();
 const isToday = (d: Date) => today.toDateString() === d.toDateString();
-
-watch(
-  () => props.open,
-  (isOpen) => {
-    if (!isOpen) return;
-
-    if (isDate.value && selectedDate.value) {
-      const date = selectedDate.value;
-      viewYear.value = date.getFullYear();
-      viewMonth.value = date.getMonth();
-    }
-
-    if (isTime.value) {
-      syncTimeColumns();
-    }
-  },
-);
-
-const handleOutsideDropdownClick = (e: MouseEvent) => {
-  if (
-    props.open &&
-    dropdownEl.value &&
-    !dropdownEl.value.contains(e.target as Node)
-  ) {
-    emit("toggle");
-  }
-};
-
-onClickOutside(dropdownEl, handleOutsideDropdownClick);
 
 const displayTime = computed(() => {
   if (!props.modelValue) return "";
@@ -175,7 +222,7 @@ const clearTime = () => {
 <template>
   <div class="dropdown" :class="{ open }" ref="dropdownEl">
     <label v-if="label">{{ label }}</label>
-    <div class="box" :class="{ error: error }" @click="emit('toggle')">
+    <div class="box" :class="{ error: error }" @click="handleToggle">
       <span class="label-text" :class="{ placeholder: !modelValue }">
         {{ selectedOptionLabel }}
       </span>
@@ -196,104 +243,120 @@ const clearTime = () => {
     <span v-if="error" class="error-text">{{ error }}</span>
 
     <!-- Regular select list -->
-    <div v-if="open && !isDate && !isTime" class="menu">
+    <Teleport to="body">
       <div
-        v-for="opt in options"
-        :key="opt.value"
-        @click="selectOptionValue(opt.value)"
+        v-if="open && !isDate && !isTime"
+        class="dropdown-menu"
+        ref="menuEl"
+        :style="menuStyle"
       >
-        {{ opt.label }}
+        <div
+          v-for="opt in options"
+          :key="opt.value"
+          @click="selectOptionValue(opt.value)"
+        >
+          {{ opt.label }}
+        </div>
       </div>
-    </div>
+    </Teleport>
 
     <!-- Date calendar -->
-    <div v-if="open && isDate" class="menu calendar">
-      <div class="cal-header">
-        <span class="month-label">{{ MONTHS[viewMonth] }} {{ viewYear }}</span>
-        <div class="nav">
-          <button type="button" @click="prevMonth">
-            <Icon icon="lucide:chevron-left" width="13" height="13" />
+    <Teleport to="body">
+      <div
+        v-if="open && isDate"
+        class="dropdown-menu calendar"
+        ref="menuEl"
+        :style="menuStyle"
+      >
+        <div class="cal-header">
+          <span class="month-label"
+            >{{ MONTHS[viewMonth] }} {{ viewYear }}</span
+          >
+          <div class="nav">
+            <button type="button" @click="prevMonth">
+              <Icon icon="lucide:chevron-left" width="13" height="13" />
+            </button>
+            <button type="button" @click="nextMonth">
+              <Icon icon="lucide:chevron-right" width="13" height="13" />
+            </button>
+          </div>
+        </div>
+        <div class="cal-grid">
+          <span class="day-label" v-for="d in DAYS" :key="d">{{ d }}</span>
+          <button
+            v-for="(cell, i) in calendarDays"
+            :key="i"
+            type="button"
+            class="day-cell"
+            :class="{
+              'out-month': !cell.inMonth,
+              selected: isSelected(cell.date),
+              today: isToday(cell.date) && !isSelected(cell.date),
+            }"
+            @click="selectDay(cell.date)"
+          >
+            {{ cell.date.getDate() }}
           </button>
-          <button type="button" @click="nextMonth">
-            <Icon icon="lucide:chevron-right" width="13" height="13" />
+        </div>
+        <div class="cal-footer">
+          <button type="button" class="footer-btn accent" @click="selectToday">
+            Today
           </button>
         </div>
       </div>
-      <div class="cal-grid">
-        <span class="day-label" v-for="d in DAYS" :key="d">{{ d }}</span>
-        <button
-          v-for="(cell, i) in calendarDays"
-          :key="i"
-          type="button"
-          class="day-cell"
-          :class="{
-            'out-month': !cell.inMonth,
-            selected: isSelected(cell.date),
-            today: isToday(cell.date) && !isSelected(cell.date),
-          }"
-          @click="selectDay(cell.date)"
-        >
-          {{ cell.date.getDate() }}
-        </button>
-      </div>
-      <div class="cal-footer">
-        <button type="button" class="footer-btn accent" @click="selectToday">
-          Today
-        </button>
-      </div>
-    </div>
+    </Teleport>
 
     <!-- Time picker: 3 columns -->
-    <div v-if="open && isTime" class="menu time-picker">
-      <div class="col-headers">
-        <span>Hour</span>
-        <span></span>
-        <span>Minute</span>
-        <span></span>
-        <span>Period</span>
+    <Teleport to="body">
+      <div
+        v-if="open && isTime"
+        class="dropdown-menu time-picker"
+        ref="menuEl"
+        :style="menuStyle"
+      >
+        <div class="col-headers">
+          <span>Hour</span>
+          <span></span>
+          <span>Minute</span>
+          <span></span>
+          <span>Period</span>
+        </div>
+        <div class="time-columns">
+          <ul class="time-col">
+            <li
+              v-for="h in HOURS"
+              :key="h"
+              :class="{ selected: selectedHour === h }"
+              @click="selectHour(h)"
+            >
+              {{ h }}
+            </li>
+          </ul>
+          <span class="col-sep">:</span>
+          <ul class="time-col">
+            <li
+              v-for="m in MINUTES"
+              :key="m"
+              :class="{ selected: selectedMinute === m }"
+              @click="selectMinute(m)"
+            >
+              {{ m }}
+            </li>
+          </ul>
+          <span class="col-sep"></span>
+          <ul class="time-col period-col">
+            <li
+              v-for="p in PERIODS"
+              :key="p"
+              :class="{ selected: selectedPeriod === p }"
+              @click="selectPeriod(p)"
+            >
+              {{ p }}
+            </li>
+          </ul>
+        </div>
       </div>
-      <div class="time-columns">
-        <!-- Hours -->
-        <ul class="time-col">
-          <li
-            v-for="h in HOURS"
-            :key="h"
-            :class="{ selected: selectedHour === h }"
-            @click="selectHour(h)"
-          >
-            {{ h }}
-          </li>
-        </ul>
-
-        <span class="col-sep">:</span>
-
-        <!-- Minutes -->
-        <ul class="time-col">
-          <li
-            v-for="m in MINUTES"
-            :key="m"
-            :class="{ selected: selectedMinute === m }"
-            @click="selectMinute(m)"
-          >
-            {{ m }}
-          </li>
-        </ul>
-
-        <span class="col-sep"></span>
-
-        <!-- AM / PM -->
-        <ul class="time-col period-col">
-          <li
-            v-for="p in PERIODS"
-            :key="p"
-            :class="{ selected: selectedPeriod === p }"
-            @click="selectPeriod(p)"
-          >
-            {{ p }}
-          </li>
-        </ul>
-      </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -324,15 +387,6 @@ const clearTime = () => {
     &:hover {
       border-color: $blue-600;
       background: $blue-50;
-    }
-
-    .cal-icon {
-      flex-shrink: 0;
-      color: $blue-600;
-
-      &.placeholder {
-        color: $gray-400;
-      }
     }
 
     .label-text {
@@ -378,53 +432,44 @@ const clearTime = () => {
     font-size: 12px;
     color: $red-500;
   }
+}
+</style>
 
-  .menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: $white;
-    border: 1px solid $slate-200;
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-    z-index: 9999;
-    box-shadow: 0 10px 25px $black-opacity-10;
+<style lang="scss">
+.dropdown-menu {
+  background: $white;
+  border: 1px solid $slate-200;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px $black-opacity-10;
 
-    &.open-up {
-      top: auto;
-      bottom: calc(100% + 6px);
-    }
+  &:not(.calendar):not(.time-picker) {
+    overflow-y: auto;
+    max-height: 150px;
+    scrollbar-width: thin;
+    scrollbar-color: $slate-300 transparent;
+    scrollbar-gutter: stable;
 
-    &:not(.calendar):not(.time-picker) {
-      overflow-y: auto;
-      max-height: 150px;
-      scrollbar-width: thin;
-      scrollbar-color: $slate-300 transparent;
-      scrollbar-gutter: stable;
+    div {
+      padding: 10px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      color: $gray-700;
+      transition: 0.15s;
+      white-space: nowrap;
 
-      div {
-        padding: 10px 12px;
-        font-size: 14px;
-        cursor: pointer;
-        color: $gray-700;
-        transition: 0.15s;
-        white-space: nowrap;
-
-        &:hover {
-          background: $blue-50;
-          color: $blue-600;
-        }
+      &:hover {
+        background: $blue-50;
+        color: $blue-600;
       }
     }
   }
+}
 
-  .calendar {
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+.dropdown-menu.calendar {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 
   .cal-header {
     display: flex;
@@ -542,111 +587,111 @@ const clearTime = () => {
       }
     }
   }
+}
 
-  .time-picker {
-    padding: 12px;
+.dropdown-menu.time-picker {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .col-headers {
+    display: grid;
+    grid-template-columns: 1fr 16px 1fr 16px 1fr;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $gray-400;
+    padding: 0 2px;
+  }
+
+  .time-columns {
+    display: grid;
+    grid-template-columns: 1fr 16px 1fr 16px 1fr;
+    align-items: start;
+  }
+
+  .col-sep {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    padding-top: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: $gray-300;
+    user-select: none;
+  }
+
+  .time-col {
+    all: unset;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    max-height: 160px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    border-radius: 8px;
 
-    .col-headers {
-      display: grid;
-      grid-template-columns: 1fr 16px 1fr 16px 1fr;
-      text-align: center;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: $gray-400;
-      padding: 0 2px;
+    &::-webkit-scrollbar {
+      display: none;
     }
 
-    .time-columns {
-      display: grid;
-      grid-template-columns: 1fr 16px 1fr 16px 1fr;
-      align-items: start;
-    }
-
-    .col-sep {
+    li {
+      all: unset;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 16px;
-      padding-top: 8px;
+      padding: 7px 4px;
       font-size: 14px;
-      font-weight: 700;
-      color: $gray-300;
-      user-select: none;
-    }
+      font-weight: 500;
+      color: $gray-600;
+      cursor: pointer;
+      border-radius: 6px;
+      transition:
+        background-color 0.12s,
+        color 0.12s;
+      text-align: center;
 
-    .time-col {
+      &:hover:not(.selected) {
+        background: $blue-50;
+        color: $blue-600;
+      }
+
+      &.selected {
+        background: $blue-600;
+        color: $white;
+        font-weight: 700;
+      }
+    }
+  }
+
+  .period-col li {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .time-footer {
+    border-top: 1px solid $slate-100;
+    padding-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+
+    .confirm-btn {
       all: unset;
-      display: flex;
-      flex-direction: column;
-      max-height: 160px;
-      overflow-y: auto;
-      scrollbar-width: none;
-      border-radius: 8px;
-
-      &::-webkit-scrollbar {
-        display: none;
-      }
-
-      li {
-        all: unset;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 7px 4px;
-        font-size: 14px;
-        font-weight: 500;
-        color: $gray-600;
-        cursor: pointer;
-        border-radius: 6px;
-        transition:
-          background-color 0.12s,
-          color 0.12s;
-        text-align: center;
-
-        &:hover:not(.selected) {
-          background: $blue-50;
-          color: $blue-600;
-        }
-
-        &.selected {
-          background: $blue-600;
-          color: $white;
-          font-weight: 700;
-        }
-      }
-    }
-
-    .period-col li {
       font-size: 12px;
       font-weight: 600;
-      letter-spacing: 0.04em;
-    }
+      color: $white;
+      background: $blue-600;
+      cursor: pointer;
+      padding: 5px 14px;
+      border-radius: 6px;
+      transition: background-color 0.15s;
 
-    .time-footer {
-      border-top: 1px solid $slate-100;
-      padding-top: 10px;
-      display: flex;
-      justify-content: flex-end;
-
-      .confirm-btn {
-        all: unset;
-        font-size: 12px;
-        font-weight: 600;
-        color: $white;
-        background: $blue-600;
-        cursor: pointer;
-        padding: 5px 14px;
-        border-radius: 6px;
-        transition: background-color 0.15s;
-
-        &:hover {
-          background: $blue-700;
-        }
+      &:hover {
+        background: $blue-700;
       }
     }
   }

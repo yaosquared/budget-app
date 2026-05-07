@@ -7,6 +7,7 @@ export const REPORTS_COLUMNS = [
 ];
 
 export const TYPE_OPTIONS = [
+  { label: "Budgets Summary", value: "budget" },
   { label: "Transactions History", value: "transaction" },
   { label: "Attendance History", value: "attendance" },
 ];

@@ -79,6 +79,7 @@ const handleSubmit = () => {
             :error="errors.type"
             placeholder="Select report type"
             @toggle="toggleDropdown('type')"
+            appendTo="body"
           />
           <Dropdown
             v-model="formData.format"
@@ -88,6 +89,7 @@ const handleSubmit = () => {
             :error="errors.format"
             placeholder="Select file format"
             @toggle="toggleDropdown('format')"
+            appendTo="body"
           />
         </div>
         <DateTimeRange

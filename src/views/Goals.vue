@@ -63,7 +63,9 @@ watch(sentinel, (el) => {
 
 onUnmounted(() => observer?.disconnect());
 
-const isDueDate = (dueDate: string) => {
+const isDueDate = (dueDate: string, status: string) => {
+  if (status === "completed") return "completed";
+
   const today = new Date();
   const due = new Date(dueDate);
 
@@ -72,8 +74,9 @@ const isDueDate = (dueDate: string) => {
 
   if (due < today) return "overdue";
   if (due.getTime() === today.getTime()) return "due-today";
-};
 
+  return "";
+};
 const openNewGoalModal = () => {
   editingGoal.value = null;
   isGoalFormModalOpen.value = true;
@@ -160,7 +163,7 @@ const closeFeatureComingSoonModal = () => {
               <p>{{ capitalize(goal.description) }}</p>
               <small>
                 Due:
-                <span :class="isDueDate(goal.due_date)">
+                <span :class="isDueDate(goal.due_date, goal.status)">
                   {{ goal.due_date }}
                 </span>
               </small>
@@ -339,6 +342,10 @@ section {
 
               .due-today {
                 color: $yellow-500;
+              }
+
+              .completed {
+                color: $green-500;
               }
             }
           }
