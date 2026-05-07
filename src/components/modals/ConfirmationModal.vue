@@ -59,11 +59,7 @@ const closeFeatureComingSoonModal = () => {
 
         <div class="actions">
           <button type="button" @click="closeModal">Cancel</button>
-          <button
-            type="button"
-            class="submit"
-            @click="openFeatureComingSoonModal"
-          >
+          <button type="button" class="submit" @click="emit('confirm')">
             Confirm
           </button>
         </div>

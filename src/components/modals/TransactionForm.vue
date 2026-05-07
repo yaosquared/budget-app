@@ -15,11 +15,13 @@ const emit = defineEmits<TTransactionFormEmits>();
 
 const formData = reactive<ITransactionFormData>({
   type: "",
+  category: "",
   amount: null,
 });
 
 const errors = reactive({
   type: "",
+  category: "",
   amount: "",
 });
 
@@ -27,8 +29,10 @@ watch(
   () => props.transaction,
   (val) => {
     formData.type = val?.type ?? "";
+    formData.category = val?.category ?? "";
     formData.amount = val?.amount ?? null;
     errors.type = "";
+    errors.category = "";
     errors.amount = "";
   },
   { immediate: true },
@@ -36,6 +40,9 @@ watch(
 
 const validate = () => {
   errors.type = formData.type.trim() ? "" : "Transaction type is required.";
+  errors.category = formData.category.trim()
+    ? ""
+    : "Transaction category is required.";
   errors.amount =
     formData.amount && Number(formData.amount) > 0
       ? ""
@@ -52,13 +59,29 @@ const handleSubmit = () => {
     amount: Number(formData.amount),
   };
   emit("submit", payload);
+  resetForm();
+};
+
+const resetForm = () => {
+  formData.type = "";
+  formData.category = "";
+  formData.amount = null;
+
+  errors.type = "";
+  errors.category = "";
+  errors.amount = "";
+};
+
+const handleClose = () => {
+  resetForm();
+  emit("close");
 };
 </script>
 
 <template>
-  <Modal v-if="isOpen" @closeModal="emit('close')">
+  <Modal v-if="isOpen" @closeModal="handleClose">
     <form @submit.prevent="handleSubmit">
-      <button @click="emit('close')" class="close-btn" type="button">
+      <button @click="handleClose" class="close-btn" type="button">
         <Icon icon="lucide:x" width="18" height="18" />
       </button>
       <div class="form-header">
@@ -71,6 +94,12 @@ const handleSubmit = () => {
           v-model="formData.type"
           placeholder="e.g. Income / Expense"
           :error="errors.type"
+        />
+        <Input
+          label="Category Type"
+          v-model="formData.category"
+          placeholder="e.g. Transport / Food"
+          :error="errors.category"
         />
         <Input
           label="Amount"

@@ -28,8 +28,7 @@ const closeDeleteConfirmationModal = () => {
 
 const handleDeleteRow = () => {
   if (selectedRow.value) {
-    console.log("selectedRow.value", selectedRow.value);
-    // emit("delete", selectedRow.value);
+    emit("delete", selectedRow.value.id);
   }
   closeDeleteConfirmationModal();
 };

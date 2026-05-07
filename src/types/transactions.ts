@@ -2,6 +2,7 @@ export interface ITransactionsData {
   id: string;
   user_id: number;
   type: string;
+  category: string;
   amount: number;
   currency: string;
 }
@@ -22,6 +23,7 @@ export interface ITransactionForm {
 export interface ITransactionFormData {
   id?: string;
   type: string;
+  category: string;
   amount: number | null;
 }
 

@@ -2,13 +2,14 @@
 import { computed } from "vue";
 
 import { IInput } from "../../types/ui";
+import { capitalize } from "../../utils/string";
 
 const props = defineProps<IInput>();
 
 const emit = defineEmits(["update:modelValue"]);
 
 const inputValue = computed({
-  get: () => props.modelValue,
+  get: () => capitalize(props.modelValue ?? ""),
   set: (val) => emit("update:modelValue", val),
 });
 </script>

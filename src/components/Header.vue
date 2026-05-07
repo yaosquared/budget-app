@@ -106,7 +106,7 @@ header {
     .avatar-container {
       width: 40px;
       height: 40px;
-      border: 3px solid $white;
+      border: 3px solid $slate-300;
       border-radius: 50%;
       padding: 0;
       overflow: hidden;

@@ -1,19 +1,24 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useInfiniteQuery } from "@tanstack/vue-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/vue-query";
 
-import { fetchTransactions } from "../api/transactions";
+import {
+  createTransaction,
+  deleteTransaction,
+  fetchTransactions,
+  updateTransaction,
+} from "../api/transactions";
 import { TRANSACTION_COLUMNS } from "../constants/transactions";
 import { ITransactionFormData, ITransactionsData } from "../types/transactions";
+import { optimisticUpdateInfinite } from "../utils/optimistic";
 import Title from "../components/ui/Title.vue";
 import Button from "../components/ui/Button.vue";
 import Table from "../components/ui/Table.vue";
-import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
 import TransactionForm from "../components/modals/TransactionForm.vue";
 
+const queryClient = useQueryClient();
 const isTransactionFormModalOpen = ref(false);
 const editingTransaction = ref<ITransactionsData | null>(null); // null = "new transaction", object = "edit transaction"
-const isFeatureComingSoonModalOpen = ref(false);
 
 const { data, isLoading, isError, isFetching, hasNextPage, fetchNextPage } =
   useInfiniteQuery({
@@ -37,44 +42,113 @@ const openEditTransactionModal = (transaction: ITransactionsData) => {
   isTransactionFormModalOpen.value = true;
 };
 
-const handleFormSubmit = (payload: ITransactionFormData) => {
-  console.log("Submitting:", payload);
+const handleFormSubmit = async (payload: ITransactionFormData) => {
+  // create
+  if (!payload.id) {
+    const tempId = crypto.randomUUID();
 
-  if (payload.id) {
-    // call update transaction api
-    openFeatureComingSoonModal();
-  } else {
-    // call create transaction api
-    openFeatureComingSoonModal();
+    const optimisticTransaction = {
+      ...payload,
+      id: tempId,
+    };
+
+    const { rollback } = optimisticUpdateInfinite({
+      queryClient,
+      queryKey: ["transactions"],
+      update: (old: any) => ({
+        ...old,
+        pages: [
+          {
+            ...old.pages[0],
+            data: [optimisticTransaction, ...old.pages[0].data],
+          },
+          ...old.pages.slice(1),
+        ],
+      }),
+    });
+
+    try {
+      const res = await createTransaction(payload);
+      const realTransaction = res.data;
+
+      queryClient.setQueryData(["transactions"], (old: any) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            data: page.data.map((t: any) =>
+              t.id === tempId ? realTransaction : t,
+            ),
+          })),
+        };
+      });
+    } catch (err) {
+      rollback();
+    }
+
+    closeFormModal();
+    return;
   }
+
+  // update
+  const { rollback } = optimisticUpdateInfinite({
+    queryClient,
+    queryKey: ["transactions"],
+    update: (old: any) => ({
+      ...old,
+      pages: old.pages.map((page: any) => ({
+        ...page,
+        data: page.data.map((t: ITransactionsData) =>
+          t.id === payload.id ? { ...t, ...payload } : t,
+        ),
+      })),
+    }),
+  });
+
+  try {
+    await updateTransaction(payload);
+  } catch (err) {
+    rollback();
+  }
+
   closeFormModal();
+};
+
+const handleDeleteTransaction = async (id: string) => {
+  const { rollback } = optimisticUpdateInfinite({
+    queryClient,
+    queryKey: ["transactions"],
+    update: (old) => ({
+      ...old,
+      pages: old.pages.map((page) => ({
+        ...page,
+        data: page.data.filter((t: any) => t.id !== id),
+      })),
+    }),
+  });
+
+  try {
+    await deleteTransaction(id);
+  } catch {
+    rollback();
+  }
 };
 
 const closeFormModal = () => {
   isTransactionFormModalOpen.value = false;
   editingTransaction.value = null;
 };
-
-const openFeatureComingSoonModal = () => {
-  isTransactionFormModalOpen.value = false;
-  isFeatureComingSoonModalOpen.value = true;
-};
-
-const closeFeatureComingSoonModal = () => {
-  isFeatureComingSoonModalOpen.value = false;
-};
 </script>
 
 <template>
   <TransactionForm
+    :key="editingTransaction?.id ?? 'new'"
     :isOpen="isTransactionFormModalOpen"
     :transaction="editingTransaction"
     @submit="handleFormSubmit"
     @close="closeFormModal"
-  />
-  <FeatureComingSoon
-    v-if="isFeatureComingSoonModalOpen"
-    @closeModal="closeFeatureComingSoonModal"
   />
   <section>
     <div class="header">
@@ -93,7 +167,7 @@ const closeFeatureComingSoonModal = () => {
       :isError="isError"
       :hasNextPage="hasNextPage"
       @edit="openEditTransactionModal"
-      @delete="openFeatureComingSoonModal"
+      @delete="handleDeleteTransaction"
       @loadMore="fetchNextPage"
       page="transactions"
     />
