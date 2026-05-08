@@ -1,6 +1,7 @@
 import axios from "axios";
-import { ISettingsResponse } from "../types/settings";
 import { QueryFunctionContext } from "@tanstack/vue-query";
+
+import { ISettingsResponse } from "../types/settings";
 
 export const fetchSettings = async ({
   pageParam = 1,

@@ -2,13 +2,13 @@
 import { reactive, watch } from "vue";
 import { Icon } from "@iconify/vue";
 
-import Modal from "../ui/Modal.vue";
-import Input from "../ui/Input.vue";
 import {
   ISettingForm,
   ISettingFormData,
   ISettingFormEmits,
 } from "../../types/settings";
+import Modal from "../ui/Modal.vue";
+import Input from "../ui/Input.vue";
 
 const props = defineProps<ISettingForm>();
 const emit = defineEmits<ISettingFormEmits>();

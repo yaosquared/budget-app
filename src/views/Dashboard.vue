@@ -1,12 +1,12 @@
 <script setup>
 import { computed } from "vue";
 import { useQuery } from "@tanstack/vue-query";
+
 import {
   fetchMetrics,
   fetchRecentBudgets,
   fetchRecentTransactions,
 } from "../api/dashboard";
-
 import Title from "../components/ui/Title.vue";
 import Metrics from "../components/Metrics.vue";
 import RecentBudgets from "../components/RecentBudgets.vue";

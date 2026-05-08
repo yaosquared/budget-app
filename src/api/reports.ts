@@ -1,6 +1,7 @@
 import axios from "axios";
-import { IReportsHistoryResponse } from "../types/reports";
 import { QueryFunctionContext } from "@tanstack/vue-query";
+
+import { IReportsHistoryResponse } from "../types/reports";
 
 export const fetchReportHistory = async ({
   pageParam = 1,

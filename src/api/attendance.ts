@@ -1,6 +1,7 @@
 import axios from "axios";
-import { IAttendanceResponse } from "../types/attendance";
 import { QueryFunctionContext } from "@tanstack/vue-query";
+
+import { IAttendanceResponse } from "../types/attendance";
 
 export const fetchAttendance = async ({
   pageParam = 1,

@@ -9,19 +9,18 @@ import {
   updateBudget,
 } from "../api/budget";
 import { BUDGET_COLUMNS } from "../constants/budget";
-import Table from "../components/ui/Table.vue";
-import Title from "../components/ui/Title.vue";
-import Button from "../components/ui/Button.vue";
-import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
-import BudgetForm from "../components/modals/BudgetForm.vue";
 import { IBudgetData, IBudgetFormData } from "../types/budget";
 import { capitalize } from "../utils/string";
 import { optimisticUpdateInfinite } from "../utils/optimistic";
+import { IGoalsData } from "../types/goals";
+import Table from "../components/ui/Table.vue";
+import Title from "../components/ui/Title.vue";
+import Button from "../components/ui/Button.vue";
+import BudgetForm from "../components/modals/BudgetForm.vue";
 
 const queryClient = useQueryClient();
 const isBudgetFormModalOpen = ref(false);
 const editingBudget = ref<IBudgetData | null>(null); // null = "new budget", object = "edit budget"
-const isFeatureComingSoonModalOpen = ref(false);
 
 const { data, isLoading, isError, isFetching, hasNextPage, fetchNextPage } =
   useInfiniteQuery({
@@ -74,20 +73,20 @@ const handleFormSubmit = async (payload: IBudgetFormData) => {
   if (!payload.id) {
     const tempId = crypto.randomUUID();
 
-    const optimisticBudget = {
+    const optimisticGoal = {
       ...payload,
       id: tempId,
     };
 
     const { rollback } = optimisticUpdateInfinite({
       queryClient,
-      queryKey: ["budgets"],
+      queryKey: ["goals"],
       update: (old: any) => ({
         ...old,
         pages: [
           {
             ...old.pages[0],
-            data: [optimisticBudget, ...old.pages[0].data],
+            data: [optimisticGoal, ...old.pages[0].data],
           },
           ...old.pages.slice(1),
         ],
@@ -96,16 +95,16 @@ const handleFormSubmit = async (payload: IBudgetFormData) => {
 
     try {
       const res = await createBudget(payload);
-      const realBudget = res.data;
+      const realGoal = res.data;
 
-      queryClient.setQueryData(["budgets"], (old: any) => {
+      queryClient.setQueryData(["goals"], (old: any) => {
         if (!old) return old;
 
         return {
           ...old,
           pages: old.pages.map((page: any) => ({
             ...page,
-            data: page.data.map((t: any) => (t.id === tempId ? realBudget : t)),
+            data: page.data.map((t: any) => (t.id === tempId ? realGoal : t)),
           })),
         };
       });
@@ -120,12 +119,12 @@ const handleFormSubmit = async (payload: IBudgetFormData) => {
   // update
   const { rollback } = optimisticUpdateInfinite({
     queryClient,
-    queryKey: ["budgets"],
+    queryKey: ["goals"],
     update: (old: any) => ({
       ...old,
       pages: old.pages.map((page: any) => ({
         ...page,
-        data: page.data.map((t: IBudgetData) =>
+        data: page.data.map((t: IGoalsData) =>
           t.id === payload.id ? { ...t, ...payload } : t,
         ),
       })),
@@ -165,14 +164,6 @@ const closeFormModal = () => {
   isBudgetFormModalOpen.value = false;
   editingBudget.value = null;
 };
-
-const openFeatureComingSoonModal = () => {
-  isFeatureComingSoonModalOpen.value = true;
-};
-
-const closeFeatureComingSoonModal = () => {
-  isFeatureComingSoonModalOpen.value = false;
-};
 </script>
 
 <template>
@@ -181,10 +172,6 @@ const closeFeatureComingSoonModal = () => {
     :budget="editingBudget"
     @submit="handleFormSubmit"
     @close="closeFormModal"
-  />
-  <FeatureComingSoon
-    v-if="isFeatureComingSoonModalOpen"
-    @closeModal="closeFeatureComingSoonModal"
   />
   <section>
     <div class="header">

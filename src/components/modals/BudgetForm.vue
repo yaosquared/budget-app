@@ -120,7 +120,6 @@ const handleClose = () => {
           :error="errors.budget"
         />
         <div class="form-actions">
-          <!-- <button type="submit">Submit</button> -->
           <button type="button" @click="handleSubmit">
             {{ budget ? "Save Changes" : "Submit" }}
           </button>

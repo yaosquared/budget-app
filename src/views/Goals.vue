@@ -1,24 +1,29 @@
 <script setup lang="ts">
 import { computed, ref, watch, onUnmounted, capitalize } from "vue";
-import { useInfiniteQuery } from "@tanstack/vue-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/vue-query";
 import { Icon } from "@iconify/vue";
 
-import { fetchGoals } from "../api/goals";
-import { IGoalFormData, IGoalsData } from "../types/goals";
+import { createGoal, fetchGoals, updateGoal } from "../api/goals";
+import {
+  IGoalFormData,
+  IGoalsData,
+  IGoalUpdateData,
+  TGoalStatus,
+} from "../types/goals";
 import { formatDate } from "../utils/dateTime";
 import { STATUS_OPTIONS, TAB_BTN_PROPERTIES } from "../constants/goals";
+import { optimisticUpdateInfinite } from "../utils/optimistic";
 import Title from "../components/ui/Title.vue";
 import Button from "../components/ui/Button.vue";
 import Dropdown from "../components/ui/Dropdown.vue";
-import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
 import GoalForm from "../components/modals/GoalForm.vue";
 
+const queryClient = useQueryClient();
 const isGoalFormModalOpen = ref(false);
 const editingGoal = ref<IGoalsData | null>(null);
 const openDropdown = ref<string | null>(null);
 const sentinel = ref<HTMLElement | null>(null);
 let observer: IntersectionObserver | null = null;
-const isFeatureComingSoonModalOpen = ref(false);
 const activeTab = ref<"pending" | "completed">("pending");
 
 const statusFilter = computed(() =>
@@ -40,6 +45,7 @@ const goals = computed(
     data.value?.pages.flatMap((page) =>
       page.data.map((item) => ({
         ...item,
+        rawDueDate: item.due_date,
         due_date: formatDate(item.due_date),
       })),
     ) ?? [],
@@ -82,14 +88,83 @@ const openNewGoalModal = () => {
   isGoalFormModalOpen.value = true;
 };
 
-const handleFormSubmit = (payload: IGoalFormData) => {
-  console.log("Submitting:", payload);
-  if (payload.id) {
-    openFeatureComingSoonModal();
-  } else {
-    openFeatureComingSoonModal();
+const handleFormSubmit = async (payload: IGoalFormData) => {
+  // create
+  if (!payload.id) {
+    const tempId = crypto.randomUUID();
+
+    const { rollback } = optimisticUpdateInfinite({
+      queryClient,
+      queryKey: ["goals", statusFilter],
+      update: (old: any) => ({
+        ...old,
+        pages: [
+          {
+            ...old.pages[0],
+            data: [{ ...payload, id: tempId }, ...old.pages[0].data],
+          },
+          ...old.pages.slice(1),
+        ],
+      }),
+    });
+
+    try {
+      await createGoal(payload);
+    } catch (err) {
+      rollback();
+    }
+
+    closeFormModal();
+    return;
   }
+
+  // update
+  if (!payload.id) return;
+
+  const { rollback } = optimisticUpdateInfinite({
+    queryClient,
+    queryKey: ["goals", statusFilter],
+    update: (old: any) => ({
+      ...old,
+      pages: old.pages.map((page: any) => ({
+        ...page,
+        data: page.data.map((t: IGoalsData) =>
+          t.id === payload.id ? { ...t, ...payload } : t,
+        ),
+      })),
+    }),
+  });
+
+  try {
+    await updateGoal(payload as IGoalUpdateData);
+  } catch (err) {
+    rollback();
+  }
+
   closeFormModal();
+};
+
+const handleStatusChange = async (goal: IGoalsData, newStatus: string) => {
+  const { rollback } = optimisticUpdateInfinite({
+    queryClient,
+    queryKey: ["goals", statusFilter],
+    update: (old: any) => ({
+      ...old,
+      pages: old.pages.map((page: any) => ({
+        ...page,
+        data: page.data.map((t: IGoalsData) =>
+          t.id === goal.id ? { ...t, status: newStatus } : t,
+        ),
+      })),
+    }),
+  });
+
+  try {
+    await updateGoal({ id: goal.id, status: newStatus as TGoalStatus });
+    await queryClient.invalidateQueries({ queryKey: ["goals"] }); // add this
+  } catch (err) {
+    rollback();
+  }
 };
 
 const closeFormModal = () => {
@@ -100,14 +175,6 @@ const closeFormModal = () => {
 const toggleDropdown = (id: string) => {
   openDropdown.value = openDropdown.value === id ? null : id;
 };
-
-const openFeatureComingSoonModal = () => {
-  isFeatureComingSoonModalOpen.value = true;
-};
-
-const closeFeatureComingSoonModal = () => {
-  isFeatureComingSoonModalOpen.value = false;
-};
 </script>
 
 <template>
@@ -116,10 +183,6 @@ const closeFeatureComingSoonModal = () => {
     :goal="editingGoal"
     @submit="handleFormSubmit"
     @close="closeFormModal"
-  />
-  <FeatureComingSoon
-    v-if="isFeatureComingSoonModalOpen"
-    @closeModal="closeFeatureComingSoonModal"
   />
   <section>
     <div class="header">
@@ -176,6 +239,7 @@ const closeFeatureComingSoonModal = () => {
               placeholder="Status"
               :open="openDropdown === goal.id"
               @toggle="toggleDropdown(goal.id)"
+              @update:modelValue="(val) => handleStatusChange(goal, val)"
             />
           </div>
         </div>

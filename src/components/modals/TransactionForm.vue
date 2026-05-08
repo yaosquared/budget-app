@@ -2,13 +2,13 @@
 import { reactive, watch } from "vue";
 import { Icon } from "@iconify/vue";
 
-import Modal from "../ui/Modal.vue";
-import Input from "../ui/Input.vue";
 import {
   ITransactionForm,
   ITransactionFormData,
   TTransactionFormEmits,
 } from "../../types/transactions";
+import Modal from "../ui/Modal.vue";
+import Input from "../ui/Input.vue";
 
 const props = defineProps<ITransactionForm>();
 const emit = defineEmits<TTransactionFormEmits>();

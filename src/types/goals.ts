@@ -31,6 +31,14 @@ export interface IGoalFormData {
   dueDate: string;
 }
 
+export interface IGoalUpdateData {
+  id: string;
+  status?: TGoalStatus;
+  title?: string;
+  description?: string;
+  dueDate?: string;
+}
+
 export type IGoalFormEmits = {
   submit: [payload: IGoalFormData];
   close: [];

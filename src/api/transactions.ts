@@ -1,9 +1,10 @@
 import axios from "axios";
+import { QueryFunctionContext } from "@tanstack/vue-query";
+
 import {
   ITransactionFormData,
   ITransactionsResponse,
 } from "../types/transactions";
-import { QueryFunctionContext } from "@tanstack/vue-query";
 
 export const fetchTransactions = async ({
   pageParam = 1,

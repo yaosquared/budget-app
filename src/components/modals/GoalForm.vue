@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { reactive, ref, watch } from "vue";
 import { Icon } from "@iconify/vue";
+
+import { IGoalForm, IGoalFormData, IGoalFormEmits } from "../../types/goals";
 import Modal from "../ui/Modal.vue";
 import Input from "../ui/Input.vue";
 import Dropdown from "../ui/Dropdown.vue";
-import { IGoalForm, IGoalFormData, IGoalFormEmits } from "../../types/goals";
-import { reactive, ref, watch } from "vue";
 
 const props = defineProps<IGoalForm>();
 const emit = defineEmits<IGoalFormEmits>();
@@ -58,12 +59,27 @@ const handleSubmit = () => {
   };
   emit("submit", payload);
 };
+
+const resetForm = () => {
+  formData.title = "";
+  formData.description = "";
+  formData.dueDate = "";
+
+  errors.title = "";
+  errors.description = "";
+  errors.dueDate = "";
+};
+
+const handleClose = () => {
+  resetForm();
+  emit("close");
+};
 </script>
 
 <template>
-  <Modal v-if="isOpen" @closeModal="emit('close')">
+  <Modal v-if="isOpen" @closeModal="handleClose">
     <form @submit.prevent="handleSubmit">
-      <button @click="emit('close')" class="close-btn" type="button">
+      <button @click="handleClose" class="close-btn" type="button">
         <Icon icon="lucide:x" width="18" height="18" />
       </button>
       <div class="form-header">
