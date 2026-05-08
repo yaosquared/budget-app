@@ -12,7 +12,6 @@ import { BUDGET_COLUMNS } from "../constants/budget";
 import { IBudgetData, IBudgetFormData } from "../types/budget";
 import { capitalize } from "../utils/string";
 import { optimisticUpdateInfinite } from "../utils/optimistic";
-import { IGoalsData } from "../types/goals";
 import Table from "../components/ui/Table.vue";
 import Title from "../components/ui/Title.vue";
 import Button from "../components/ui/Button.vue";
@@ -80,7 +79,7 @@ const handleFormSubmit = async (payload: IBudgetFormData) => {
 
     const { rollback } = optimisticUpdateInfinite({
       queryClient,
-      queryKey: ["goals"],
+      queryKey: ["budgets"],
       update: (old: any) => ({
         ...old,
         pages: [
@@ -97,7 +96,7 @@ const handleFormSubmit = async (payload: IBudgetFormData) => {
       const res = await createBudget(payload);
       const realGoal = res.data;
 
-      queryClient.setQueryData(["goals"], (old: any) => {
+      queryClient.setQueryData(["budgets"], (old: any) => {
         if (!old) return old;
 
         return {
@@ -119,12 +118,12 @@ const handleFormSubmit = async (payload: IBudgetFormData) => {
   // update
   const { rollback } = optimisticUpdateInfinite({
     queryClient,
-    queryKey: ["goals"],
+    queryKey: ["budgets"],
     update: (old: any) => ({
       ...old,
       pages: old.pages.map((page: any) => ({
         ...page,
-        data: page.data.map((t: IGoalsData) =>
+        data: page.data.map((t: IBudgetData) =>
           t.id === payload.id ? { ...t, ...payload } : t,
         ),
       })),
