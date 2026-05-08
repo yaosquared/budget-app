@@ -33,7 +33,7 @@ watch(
   () => props.budget,
   (val) => {
     formData.category = val?.category ?? "";
-    formData.month = val?.month ?? "";
+    formData.month = val?.month.toLowerCase() ?? "";
     formData.budget = val?.budget ? Number(val.budget) : null;
     errors.category = "";
     errors.month = "";
@@ -66,12 +66,27 @@ const handleSubmit = () => {
   };
   emit("submit", payload);
 };
+
+const resetForm = () => {
+  formData.category = "";
+  formData.month = "";
+  formData.budget = null;
+
+  errors.category = "";
+  errors.month = "";
+  errors.budget = "";
+};
+
+const handleClose = () => {
+  resetForm();
+  emit("close");
+};
 </script>
 
 <template>
-  <Modal v-if="isOpen" @closeModal="emit('close')">
+  <Modal v-if="isOpen" @closeModal="handleClose">
     <form @submit.prevent="handleSubmit">
-      <button @click="emit('close')" class="close-btn" type="button">
+      <button @click="handleClose" class="close-btn" type="button">
         <Icon icon="lucide:x" width="18" height="18" />
       </button>
       <div class="form-header">

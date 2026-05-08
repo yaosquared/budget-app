@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useInfiniteQuery } from "@tanstack/vue-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/vue-query";
 
-import { fetchBudgets } from "../api/budget";
+import {
+  createBudget,
+  deleteBudget,
+  fetchBudgets,
+  updateBudget,
+} from "../api/budget";
 import { BUDGET_COLUMNS } from "../constants/budget";
 import Table from "../components/ui/Table.vue";
 import Title from "../components/ui/Title.vue";
@@ -10,7 +15,10 @@ import Button from "../components/ui/Button.vue";
 import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
 import BudgetForm from "../components/modals/BudgetForm.vue";
 import { IBudgetData, IBudgetFormData } from "../types/budget";
+import { capitalize } from "../utils/string";
+import { optimisticUpdateInfinite } from "../utils/optimistic";
 
+const queryClient = useQueryClient();
 const isBudgetFormModalOpen = ref(false);
 const editingBudget = ref<IBudgetData | null>(null); // null = "new budget", object = "edit budget"
 const isFeatureComingSoonModalOpen = ref(false);
@@ -28,6 +36,7 @@ const { data, isLoading, isError, isFetching, hasNextPage, fetchNextPage } =
 const rows = computed(() => {
   return (data.value?.pages ?? []).flatMap((page) =>
     page.data.map((item) => {
+      const month = capitalize(item.month);
       const budget = Number(item.budget || 0);
       const spent = Number(item.spent || 0);
       const remaining = budget - spent;
@@ -42,6 +51,7 @@ const rows = computed(() => {
 
       return {
         ...item,
+        month,
         remaining,
         status,
       };
@@ -59,17 +69,96 @@ const openEditBudgetModal = (budget: IBudgetData) => {
   isBudgetFormModalOpen.value = true;
 };
 
-const handleFormSubmit = (payload: IBudgetFormData) => {
-  console.log("Submitting:", payload);
+const handleFormSubmit = async (payload: IBudgetFormData) => {
+  // create
+  if (!payload.id) {
+    const tempId = crypto.randomUUID();
 
-  if (payload.id) {
-    // call update budget api
-    openFeatureComingSoonModal();
-  } else {
-    // call create budget api
-    openFeatureComingSoonModal();
+    const optimisticBudget = {
+      ...payload,
+      id: tempId,
+    };
+
+    const { rollback } = optimisticUpdateInfinite({
+      queryClient,
+      queryKey: ["budgets"],
+      update: (old: any) => ({
+        ...old,
+        pages: [
+          {
+            ...old.pages[0],
+            data: [optimisticBudget, ...old.pages[0].data],
+          },
+          ...old.pages.slice(1),
+        ],
+      }),
+    });
+
+    try {
+      const res = await createBudget(payload);
+      const realBudget = res.data;
+
+      queryClient.setQueryData(["budgets"], (old: any) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            data: page.data.map((t: any) => (t.id === tempId ? realBudget : t)),
+          })),
+        };
+      });
+    } catch (err) {
+      rollback();
+    }
+
+    closeFormModal();
+    return;
   }
+
+  // update
+  const { rollback } = optimisticUpdateInfinite({
+    queryClient,
+    queryKey: ["budgets"],
+    update: (old: any) => ({
+      ...old,
+      pages: old.pages.map((page: any) => ({
+        ...page,
+        data: page.data.map((t: IBudgetData) =>
+          t.id === payload.id ? { ...t, ...payload } : t,
+        ),
+      })),
+    }),
+  });
+
+  try {
+    await updateBudget(payload);
+  } catch (err) {
+    rollback();
+  }
+
   closeFormModal();
+};
+
+const handleDeleteBudget = async (id: string) => {
+  const { rollback } = optimisticUpdateInfinite({
+    queryClient,
+    queryKey: ["budgets"],
+    update: (old) => ({
+      ...old,
+      pages: old.pages.map((page) => ({
+        ...page,
+        data: page.data.filter((t: any) => t.id !== id),
+      })),
+    }),
+  });
+
+  try {
+    await deleteBudget(id);
+  } catch {
+    rollback();
+  }
 };
 
 const closeFormModal = () => {
@@ -115,7 +204,7 @@ const closeFeatureComingSoonModal = () => {
         :isError="isError"
         :hasNextPage="hasNextPage"
         @edit="openEditBudgetModal"
-        @delete="openFeatureComingSoonModal"
+        @delete="handleDeleteBudget"
         @loadMore="fetchNextPage"
         page="budget"
       />

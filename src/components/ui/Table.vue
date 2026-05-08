@@ -112,9 +112,6 @@ onUnmounted(() => observer?.disconnect());
             >
               {{ row.status }}
             </span>
-            <span v-else-if="col.key === 'month'">{{
-              formatMonth(row.month)
-            }}</span>
             <span v-else-if="['created_at', 'updated_at'].includes(col.key)">
               {{ formatDateTime(row[col.key]) }}
             </span>

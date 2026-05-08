@@ -19,6 +19,7 @@ export const formatMonth = (dateTime: string, short = false) => {
 
   return date.toLocaleDateString("en-US", {
     month: short ? "short" : "long",
+    timeZone: "UTC",
   });
 };
 
