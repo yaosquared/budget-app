@@ -173,15 +173,8 @@ form {
 
     .group {
       display: flex;
+      flex-direction: column;
       gap: 16px;
-
-      .input-group {
-        width: 50%;
-      }
-
-      .dropdown {
-        width: 50%;
-      }
     }
   }
 
@@ -206,6 +199,24 @@ form {
 
       &:active {
         transform: translateY(0);
+      }
+    }
+  }
+}
+
+@media (min-width: 426px) {
+  form {
+    .form-body {
+      .group {
+        flex-direction: row;
+
+        .input-group {
+          width: 50%;
+        }
+
+        .dropdown {
+          width: 50%;
+        }
       }
     }
   }

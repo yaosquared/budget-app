@@ -69,39 +69,53 @@ const toggleTo = () => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
 
-.group-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: $black-800;
-  letter-spacing: 0.04em;
+  .group-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: $black-800;
+    letter-spacing: 0.04em;
 
-  svg {
-    color: $indigo-600;
-    flex-shrink: 0;
+    svg {
+      color: $indigo-600;
+      flex-shrink: 0;
+    }
+  }
+
+  .range-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    .range-dropdown {
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+    }
+
+    .range-divider {
+      display: flex;
+      align-items: center;
+      color: $slate-400;
+      flex-shrink: 0;
+      rotate: 90deg;
+    }
   }
 }
 
-.range-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
+@media (min-width: 426px) {
+  .range-group {
+    .range-row {
+      flex-direction: row;
 
-.range-dropdown {
-  flex: 1;
-  min-width: 0;
-}
-
-.range-divider {
-  display: flex;
-  align-items: center;
-  color: $slate-400;
-  flex-shrink: 0;
-  margin-top: 10px;
+      .range-divider {
+        rotate: 0deg;
+      }
+    }
+  }
 }
 </style>

@@ -328,7 +328,7 @@ section {
       flex-direction: column;
       gap: 10px;
       overflow-y: auto;
-      max-height: calc(100vh - 180px);
+      max-height: calc(100vh - 220px);
       scrollbar-width: thin;
       scrollbar-color: $slate-300 transparent;
       padding-right: 4px;
