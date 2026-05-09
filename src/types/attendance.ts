@@ -1,5 +1,5 @@
 export interface IAttendanceData {
-  id: number;
+  id: string;
   date: string;
   status: "present" | "late" | "absent";
   time_in: string;
@@ -32,4 +32,5 @@ export interface IAttendanceFilterFormData {
 export type IAttendanceFilterFormEmits = {
   submit: [payload: IAttendanceFilterFormData];
   close: [];
+  reset: [];
 };

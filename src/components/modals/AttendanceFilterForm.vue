@@ -85,6 +85,11 @@ const handleSubmit = () => {
   };
   emit("submit", payload);
 };
+
+const handleReset = () => {
+  resetForm();
+  emit("reset");
+};
 </script>
 
 <template>
@@ -114,8 +119,8 @@ const handleSubmit = () => {
           type="time"
           label="Time In Range"
           icon="lucide:clock-arrow-up"
-          fromLabel="Start"
-          toLabel="End"
+          fromLabel="From"
+          toLabel="To"
           :options="timeOptions"
           v-model:from-value="formData.timeInFrom"
           v-model:to-value="formData.timeInTo"
@@ -124,14 +129,17 @@ const handleSubmit = () => {
           type="time"
           label="Time Out Range"
           icon="lucide:clock-arrow-down"
-          fromLabel="Start"
-          toLabel="End"
+          fromLabel="From"
+          toLabel="To"
           :options="timeOptions"
           v-model:from-value="formData.timeOutFrom"
           v-model:to-value="formData.timeOutTo"
         />
         <div class="form-actions">
-          <button type="button" @click="handleSubmit">Apply Filters</button>
+          <button type="button" @click="handleReset">Reset</button>
+          <button type="button" @click="handleSubmit" class="submit">
+            Apply Filters
+          </button>
         </div>
       </div>
     </form>
@@ -285,25 +293,39 @@ form {
 
   .form-actions {
     margin-top: 6px;
+    display: flex;
+    gap: 10px;
 
     button {
-      width: 100%;
-      padding: 12px;
-      border: none;
+      flex: 1;
+      padding: 10px 14px;
       border-radius: 10px;
-      background: linear-gradient(135deg, $indigo-700, $indigo-600);
-      color: $white;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      transition: 0.2s ease;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+      background: $white;
+      border: 1px solid $slate-200;
+      color: $gray-700;
 
       &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
+        background: $slate-50;
+        border-color: $slate-300;
+        color: $black-900;
       }
 
-      &:active {
-        transform: translateY(0);
+      &.submit {
+        background: $indigo-600;
+        color: $white;
+
+        &:hover {
+          background: $indigo-700;
+        }
+
+        &:active {
+          transform: scale(0.98);
+        }
       }
     }
   }

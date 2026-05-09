@@ -2,7 +2,7 @@
 import { ref, watch, onUnmounted, capitalize } from "vue";
 
 import { ITable } from "../../types/ui";
-import { formatDateTime, formatMonth } from "../../utils/dateTime";
+import { formatDateTime } from "../../utils/dateTime";
 import ConfirmationModal from "../modals/ConfirmationModal.vue";
 import { formatLabel } from "../../utils/string";
 
@@ -12,6 +12,7 @@ const emit = defineEmits({
   edit: (row) => true,
   delete: (row) => true,
   loadMore: () => true,
+  timeOut: (row) => true,
 });
 
 const selectedRow = ref<any>(null);
@@ -116,14 +117,25 @@ onUnmounted(() => observer?.disconnect());
               {{ formatDateTime(row[col.key]) }}
             </span>
             <span v-else-if="col.key === 'actions'" class="actions">
-              <button class="edit" @click="emit('edit', row)">Edit</button>
-              <button
-                v-if="page !== 'settings'"
-                class="delete"
-                @click="openDeleteConfirmationModal(row)"
-              >
-                Delete
-              </button>
+              <template v-if="page === 'attendance'">
+                <button
+                  v-if="canTimeOut && row.has_timed_in && !row.has_timed_out"
+                  class="time-out"
+                  @click="emit('timeOut', row)"
+                >
+                  Time Out
+                </button>
+              </template>
+              <template v-else>
+                <button class="edit" @click="emit('edit', row)">Edit</button>
+                <button
+                  v-if="page !== 'settings'"
+                  class="delete"
+                  @click="openDeleteConfirmationModal(row)"
+                >
+                  Delete
+                </button>
+              </template>
             </span>
             <span v-else>
               {{ row[col.key] }}
@@ -271,6 +283,15 @@ onUnmounted(() => observer?.disconnect());
 
                 &:hover {
                   background: $red-200;
+                }
+              }
+
+              .time-out {
+                background: $amber-100;
+                color: $amber-700;
+
+                &:hover {
+                  background: $amber-200;
                 }
               }
             }

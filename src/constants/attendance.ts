@@ -3,4 +3,5 @@ export const ATTENDANCE_COLUMNS = [
   { key: "status", label: "Status" },
   { key: "time_in", label: "Time In" },
   { key: "time_out", label: "Time Out" },
+  { key: "actions", label: "Actions" },
 ];

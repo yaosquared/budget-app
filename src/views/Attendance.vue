@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { useInfiniteQuery } from "@tanstack/vue-query";
+import { computed, reactive, ref } from "vue";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/vue-query";
 
-import { fetchAttendance } from "../api/attendance";
+import { fetchAttendance, timeIn, timeOut } from "../api/attendance";
 import { formatDate, formatTime } from "../utils/dateTime";
 import { ATTENDANCE_COLUMNS } from "../constants/attendance";
 import {
@@ -12,17 +12,27 @@ import {
 import Title from "../components/ui/Title.vue";
 import Table from "../components/ui/Table.vue";
 import Button from "../components/ui/Button.vue";
-import FeatureComingSoon from "../components/modals/FeatureComingSoon.vue";
 import ConfirmationModal from "../components/modals/ConfirmationModal.vue";
 import AttendanceFilterForm from "../components/modals/AttendanceFilterForm.vue";
 
+const queryClient = useQueryClient();
 const isFilterAttendanceModalOpen = ref(false);
-const isFeatureComingSoonModalOpen = ref(false);
 const isConfirmationModalOpen = ref(false);
+const isTimingIn = ref(false);
+
+const attendanceFilters = reactive<IAttendanceFilterFormData>({
+  status: [],
+  dateFrom: "",
+  dateTo: "",
+  timeInFrom: "",
+  timeInTo: "",
+  timeOutFrom: "",
+  timeOutTo: "",
+});
 
 const { data, isLoading, isError, isFetching, hasNextPage, fetchNextPage } =
   useInfiniteQuery({
-    queryKey: ["attendance"],
+    queryKey: computed(() => ["attendance", { ...attendanceFilters }]),
     queryFn: fetchAttendance,
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -37,6 +47,8 @@ const rows = computed(() => {
       attendance_date: formatDate(item.created_at),
       time_in: formatTime(item.time_in),
       time_out: formatTime(item.time_out),
+      has_timed_in: !!item.time_in,
+      has_timed_out: !!item.time_out,
     })),
   );
 });
@@ -53,18 +65,57 @@ const closeConfirmationModal = () => {
   isConfirmationModalOpen.value = false;
 };
 
-const openFeatureComingSoonModal = () => {
-  isFeatureComingSoonModalOpen.value = true;
+const today = new Date().toISOString().split("T")[0];
+
+const canTimeIn = computed(() => {
+  return !rows.value.some(
+    (row) => row.attendance_date === formatDate(today) && row.has_timed_in,
+  );
+});
+
+const canTimeOut = computed(() => {
+  return rows.value.some(
+    (row) => row.attendance_date === formatDate(today) && !row.has_timed_out,
+  );
+});
+
+const handleTimeIn = async () => {
+  isTimingIn.value = true;
+  try {
+    await timeIn();
+    await queryClient.invalidateQueries({ queryKey: ["attendance"] });
+    closeConfirmationModal();
+  } catch (err) {
+    console.error(err);
+  } finally {
+    isTimingIn.value = false;
+  }
 };
 
-const closeFeatureComingSoonModal = () => {
-  isFeatureComingSoonModalOpen.value = false;
+const handleTimeOut = async (row: IAttendanceData) => {
+  try {
+    await timeOut(row.id);
+    await queryClient.invalidateQueries({ queryKey: ["attendance"] });
+  } catch (err) {
+    console.error(err);
+  }
 };
 
 const handleFilterSubmit = (payload: IAttendanceFilterFormData) => {
-  console.log("Filtering:", payload);
-  // TODO: integrate filter api
-  openFeatureComingSoonModal();
+  Object.assign(attendanceFilters, payload);
+  closeFilterModal();
+};
+
+const handleFilterReset = () => {
+  Object.assign(attendanceFilters, {
+    status: [],
+    dateFrom: "",
+    dateTo: "",
+    timeInFrom: "",
+    timeInTo: "",
+    timeOutFrom: "",
+    timeOutTo: "",
+  });
   closeFilterModal();
 };
 
@@ -78,23 +129,22 @@ const closeFilterModal = () => {
     :isOpen="isFilterAttendanceModalOpen"
     @submit="handleFilterSubmit"
     @close="closeFilterModal"
+    @reset="handleFilterReset"
   />
   <ConfirmationModal
     v-if="isConfirmationModalOpen"
     title="Are you sure you want to time in?"
     subTitle="This action cannot be undone."
+    @confirm="handleTimeIn"
     @closeModal="closeConfirmationModal"
     type="attendance"
-  />
-  <FeatureComingSoon
-    v-if="isFeatureComingSoonModalOpen"
-    @closeModal="closeFeatureComingSoonModal"
   />
   <section>
     <div class="header">
       <Title text="Attendance" />
       <div class="controls">
         <Button
+          v-if="canTimeIn"
           icon="lucide:clock-plus"
           text="Time In"
           @click="openConfirmationModal"
@@ -102,7 +152,6 @@ const closeFilterModal = () => {
         <Button icon="lucide:filter" text="Filter" @click="openTimeInModal" />
       </div>
     </div>
-
     <Table
       :columns="ATTENDANCE_COLUMNS"
       :rows="rows"
@@ -110,7 +159,9 @@ const closeFilterModal = () => {
       :isFetching="isFetching"
       :isError="isError"
       :hasNextPage="hasNextPage"
+      :canTimeOut="canTimeOut"
       @loadMore="fetchNextPage"
+      @timeOut="handleTimeOut"
       page="attendance"
     />
   </section>

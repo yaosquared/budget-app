@@ -72,6 +72,7 @@ export interface ITable {
   isError: boolean;
   hasNextPage?: boolean;
   page: string;
+  canTimeOut?: boolean;
 }
 
 export interface ITitle {
